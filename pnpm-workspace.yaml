@@ -1,0 +1,10 @@
+# Allow the native dependencies that fetch platform binaries to run their
+# install scripts (equivalent to the old npm allowScripts entries).
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - '@serenity-js/assertions@3.47.2'
+  - '@serenity-js/console-reporter@3.47.2'
+  - '@serenity-js/core@3.47.2'

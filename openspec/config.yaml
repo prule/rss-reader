@@ -1,0 +1,93 @@
+schema: spec-driven
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+context: |
+  Product: Ferrite — a local-first RSS reader delivered as an installable PWA.
+  Everything (feeds, folder hierarchy, entries, read/bookmark state) is stored
+  on the device in localStorage under the key `ferrite.library.v1`. There is no
+  server and no account; the app must work fully offline once loaded.
+
+  Core capabilities:
+  - Add RSS feeds (URL + optional title + target folder).
+  - A navigation tree of folders and feeds arranged in an arbitrary hierarchy,
+    reordered and re-parented by drag and drop (including dropping to top level).
+    Deleting a folder reparents its children; deleting a feed removes its entries.
+  - Selecting a node shows every entry beneath it (a folder aggregates all feeds
+    under it, recursively). Library shortcuts: All Entries, Unread, Bookmarks.
+  - Per-entry read/unread state and bookmarking.
+  - A bookmark is implicitly tagged with its feed's full hierarchy path
+    (each ancestor folder name plus the feed name).
+  - Bookmarks view supports search by keyword (title/snippet/tags) combined with
+    tag-chip filters (AND semantics across selected tags).
+  - JSON and CSV export, and JSON/CSV import for backup and restore.
+  - Keyboard shortcuts: J/K navigate, B bookmark, U toggle unread, N new feed,
+    / focus bookmark search.
+
+  Data model (localStorage):
+  - nodes: { id, type: 'folder' | 'feed', name, parentId (null = root), collapsed, url? }
+  - entries: { id, feedId, title, author, ago, snippet, body[], read, marked }
+
+  Tech/stack:
+  - TypeScript + React, built with Vite. Single-page app.
+  - pnpm is the package manager for everything (install, scripts, the relay
+    worker) — never npm or yarn. It is pinned via `packageManager` in
+    package.json; the lockfile is `pnpm-lock.yaml`. Native build scripts
+    (esbuild, workerd, sharp) are approved via `allowBuilds` in
+    `pnpm-workspace.yaml`. Use `pnpm <script>` (e.g. `pnpm dev`, `pnpm test`,
+    `pnpm run test:e2e`, `pnpm run relay:dev`, `pnpm build`).
+  - The reference design in `RSS reader design/` is a React component (class
+    extending DCLogic) rendered via a design-canvas runtime — treat it as the
+    visual and behavioral spec, and port it to idiomatic TS/React (function
+    components + hooks) rather than reproducing the DCLogic base class.
+  - Persistence is browser localStorage only; there is no user data on any
+    server and no account.
+  - The one server-side piece is a minimal, stateless Cloudflare Worker feed
+    relay (`relay/`) that fetches feed XML to work around browser CORS. It
+    stores nothing and holds no user data — a deliberate, minimal exception to
+    "no backend", scoped strictly to fetching. In dev the Vite server proxies
+    `/relay` to a local `wrangler dev`; in prod the client points at the
+    deployed Worker via `VITE_RELAY_URL`.
+  - Deployment: the built static app (Vite `dist/`) is deployed to
+    **Cloudflare Pages**. The feed relay stays a separate standalone Cloudflare
+    Worker (`relay/`, `wrangler deploy`) — it is not folded into Pages
+    Functions. `VITE_RELAY_URL` is set at build time to the deployed relay
+    Worker's origin so the Pages-hosted app can reach it.
+
+  Testing:
+  - Unit / component tests with Vitest.
+  - End-to-end / acceptance tests with Playwright, driven through the
+    Screenplay Pattern and reported with Serenity/JS (actors, abilities,
+    tasks, questions — not raw page-object calls).
+
+  Design system: "Industry" (in `RSS reader design/_ds/.../styles.css`).
+  - Steel-blue accent (#5980a6) on a light technical ground (#f2f2f3),
+    text #1d1f20. Barlow Condensed headings over Barlow body.
+  - Consume design tokens only (var(--color-*), --font-*, --space-*,
+    --radius-*, --shadow-*); never hard-code hex, font names, or raw px the
+    tokens already carry.
+  - Wireframe aesthetic: square corners, hairline borders, `.blueprint` frames
+    with `<i class="corner …">` registration marks; the primary button is the
+    one solid accent fill. Lucide icons at stroke-width 1.5.
+  - Themed interaction states (accent-ramp hover/pressed, 2px accent
+    :focus-visible ring); no browser-default focus rings.
+
+# Per-artifact rules (optional)
+rules:
+  proposal:
+    - State how the change behaves offline and what it persists to localStorage.
+    - Call out any change to the nodes/entries data shape and its migration path.
+  tasks:
+    - Include a task to verify export/import round-trips after data-model changes.
+    - Cover behavior with Vitest (units/components) and, for user-facing flows,
+      Playwright acceptance tests written in the Screenplay Pattern (Serenity/JS).
+
+# Per-operation guidance (optional)
+operations:
+  apply:
+    guidance:
+      - Use Industry design tokens; do not introduce colors, fonts, or spacing
+        outside the token scales.
+  archive:
+    guidance:
+      - Confirm data persists across reload and that the PWA still works offline.

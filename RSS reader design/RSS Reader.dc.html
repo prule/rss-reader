@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-2124117a-71c2-4ed9-ab14-7e571c57c962/styles.css">
+<script src="_ds/industry-2124117a-71c2-4ed9-ab14-7e571c57c962/_ds_bundle.js"></script>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5980a6">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  html, body { margin: 0; height: 100%; background: var(--color-bg); }
+  input, select, button, textarea { font-family: inherit; }
+  a { color: var(--color-accent-700); }
+  a:hover { color: var(--color-accent-900); }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: color-mix(in srgb, #1d1f20 22%, transparent); }
+</style>
+</helmet>
+<div style="height:100vh;min-height:600px;display:flex;background:var(--color-bg);font-family:var(--font-body);color:var(--color-text);font-size:14px">
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0;background:var(--color-bg);overflow:hidden;position:relative">
+
+    <div style="display:flex;align-items:center;gap:14px;height:46px;padding:0 12px;background:var(--color-surface);border-bottom:1px solid var(--color-divider);flex:none">
+      <div style="display:flex;align-items:baseline;gap:10px;min-width:0">
+        <span style="font-family:var(--font-heading);font-weight:600;letter-spacing:0.09em;text-transform:uppercase;font-size:13px">Ferrite</span>
+        <span style="font-family:var(--font-heading);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:1px 5px;border:1px solid var(--color-divider);color:color-mix(in srgb,#1d1f20 58%,transparent)">Local</span>
+        <span style="font-size:12px;color:color-mix(in srgb,#1d1f20 55%,transparent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ crumb }}</span>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="btn btn-secondary" onClick="{{ exportJson }}" title="Download feeds, folders and bookmarks as JSON" style="height:26px;font-size:12px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7M5.5 7.5 8 10l2.5-2.5M3 12.5h10"></path></svg>
+          JSON
+        </button>
+        <button class="btn btn-secondary" onClick="{{ exportCsv }}" title="Download entries and bookmark tags as CSV" style="height:26px;font-size:12px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7M5.5 7.5 8 10l2.5-2.5M3 12.5h10"></path></svg>
+          CSV
+        </button>
+        <button class="btn btn-secondary" onClick="{{ pickImport }}" title="Restore from a JSON or CSV export" style="height:26px;font-size:12px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 10.5v-7M5.5 6 8 3.5 10.5 6M3 12.5h10"></path></svg>
+          Import
+        </button>
+        <input type="file" ref="{{ fileRef }}" onChange="{{ onImportFile }}" accept=".json,.csv,application/json,text/csv" style="display:none">
+        <span style="width:1px;height:20px;background:var(--color-divider);margin:0 2px"></span>
+        <button class="btn btn-secondary" onClick="{{ newFolder }}" style="height:26px;font-size:12px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5.5a1 1 0 0 1 1-1h3.4l1.3 1.6H13a1 1 0 0 1 1 1v5.4a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"></path></svg>
+          New Folder
+        </button>
+        <button class="btn btn-primary" onClick="{{ openAddFeed }}" style="height:26px;font-size:12px">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg>
+          Add Feed
+        </button>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;min-height:0">
+
+      <div onDragOver="{{ onRootOver }}" onDrop="{{ onRootDrop }}" style="width:236px;flex:none;display:flex;flex-direction:column;background:var(--color-surface);border-right:1px solid var(--color-divider);overflow:auto">
+        <div style="padding:12px 12px 4px;font-family:var(--font-heading);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb,#1d1f20 50%,transparent)">Library</div>
+        <div onClick="{{ selectAll }}" style="display:flex;align-items:center;gap:7px;height:27px;padding:0 12px;cursor:default;background:{{ allBg }}">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"></path></svg>
+          <span style="flex:1">All Entries</span>
+          <span style="font-size:11px;color:color-mix(in srgb,#1d1f20 50%,transparent)">{{ totalCount }}</span>
+        </div>
+        <div onClick="{{ selectUnread }}" style="display:flex;align-items:center;gap:7px;height:27px;padding:0 12px;cursor:default;background:{{ unreadBg }}">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3.5"></circle></svg>
+          <span style="flex:1">Unread</span>
+          <span style="font-size:11px;color:var(--color-accent-700);font-weight:700">{{ unreadCount }}</span>
+        </div>
+        <div onClick="{{ selectBookmarks }}" style="display:flex;align-items:center;gap:7px;height:27px;padding:0 12px;cursor:default;background:{{ bmBg }}">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 2.5h8v11l-4-3-4 3z"></path></svg>
+          <span style="flex:1">Bookmarks</span>
+          <span style="font-size:11px;color:color-mix(in srgb,#1d1f20 50%,transparent)">{{ bookmarkCount }}</span>
+        </div>
+
+        <div style="padding:16px 12px 4px;font-family:var(--font-heading);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:color-mix(in srgb,#1d1f20 50%,transparent)">Feeds</div>
+        <sc-for list="{{ rows }}" as="row" hint-placeholder-count="9">
+          <div draggable="true" onClick="{{ row.onClick }}" onDragStart="{{ row.onDragStart }}" onDragOver="{{ row.onDragOver }}" onDrop="{{ row.onDrop }}" onDragEnd="{{ row.onDragEnd }}" onMouseEnter="{{ row.onEnter }}" onMouseLeave="{{ row.onLeave }}" style="display:flex;align-items:center;gap:6px;height:27px;padding-right:8px;padding-left:{{ row.pad }}px;cursor:default;user-select:none;background:{{ row.bg }};box-shadow:{{ row.dropShadow }};opacity:{{ row.opacity }}">
+            <span onClick="{{ row.onToggle }}" style="width:12px;display:flex;align-items:center;justify-content:center;color:{{ row.chevColor }}">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="transform:{{ row.chevRotate }}"><path d="M6 4l4 4-4 4"></path></svg>
+            </span>
+            <sc-if value="{{ row.isFolder }}" hint-placeholder-val="{{ true }}">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" style="flex:none;color:var(--color-accent-700)"><path d="M2 5.5a1 1 0 0 1 1-1h3.4l1.3 1.6H13a1 1 0 0 1 1 1v5.4a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"></path></svg>
+            </sc-if>
+            <sc-if value="{{ row.isFeed }}" hint-placeholder-val="{{ false }}">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="flex:none;color:color-mix(in srgb,#1d1f20 55%,transparent)"><circle cx="4" cy="12" r="1"></circle><path d="M3 8a5 5 0 0 1 5 5"></path><path d="M3 4a9 9 0 0 1 9 9"></path></svg>
+            </sc-if>
+            <sc-if value="{{ row.renaming }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ renameValue }}" onChange="{{ onRenameInput }}" onKeyDown="{{ onRenameKey }}" onBlur="{{ commitRename }}" autoFocus="{{ true }}" style="flex:1;min-width:0;font-size:13px;padding:1px 4px;border:1px solid var(--color-accent);border-radius:2px;background:var(--color-bg);color:var(--color-text)">
+            </sc-if>
+            <sc-if value="{{ row.showName }}" hint-placeholder-val="{{ true }}">
+              <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:{{ row.weight }}">{{ row.name }}</span>
+            </sc-if>
+            <span style="display:flex;gap:2px;opacity:{{ row.actionsOpacity }}">
+              <button onClick="{{ row.onRename }}" title="Rename" style="border:0;background:transparent;padding:2px;cursor:default;color:color-mix(in srgb,#1d1f20 60%,transparent)">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M11.5 2.5 13.5 4.5 5.5 12.5 3 13l.5-2.5z"></path></svg>
+              </button>
+              <button onClick="{{ row.onDelete }}" title="Delete" style="border:0;background:transparent;padding:2px;cursor:default;color:color-mix(in srgb,#1d1f20 60%,transparent)">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h10M6.5 5V3.5h3V5M4.5 5l.6 9h5.8l.6-9"></path></svg>
+              </button>
+            </span>
+            <span style="font-size:11px;min-width:14px;text-align:right;color:{{ row.badgeColor }};font-weight:{{ row.badgeWeight }}">{{ row.badge }}</span>
+          </div>
+        </sc-for>
+        <div onDragOver="{{ onRootOver }}" onDrop="{{ onRootDrop }}" style="flex:1;min-height:40px;margin:6px;border:1px dashed {{ rootDashColor }}"></div>
+      </div>
+
+      <div style="width:352px;flex:none;display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--color-divider)">
+        <div style="flex:none;padding:10px 12px;border-bottom:1px solid var(--color-divider);display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <h4 style="margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ listTitle }}</h4>
+            <button class="btn btn-ghost" onClick="{{ markAllRead }}" style="font-size:11px;height:22px">Mark all read</button>
+          </div>
+          <sc-if value="{{ bookmarkMode }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;align-items:center;gap:6px;border:1px solid var(--color-divider);background:var(--color-bg);padding:4px 7px">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:color-mix(in srgb,#1d1f20 55%,transparent)"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5 14 14"></path></svg>
+                <input ref="{{ searchRef }}" value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search bookmarks — keywords or tags" style="flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:13px;color:var(--color-text)">
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px">
+                <sc-for list="{{ tagChips }}" as="chip" hint-placeholder-count="6">
+                  <button onClick="{{ chip.onClick }}" style="font-family:var(--font-heading);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;padding:2px 7px;cursor:default;border:1px solid {{ chip.border }};background:{{ chip.bg }};color:{{ chip.fg }}">{{ chip.label }}</button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ notBookmarkMode }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:11px;letter-spacing:0.06em;text-transform:uppercase;font-family:var(--font-heading);color:color-mix(in srgb,#1d1f20 50%,transparent)">{{ listSubtitle }}</div>
+          </sc-if>
+        </div>
+        <div style="flex:1;overflow:auto">
+          <sc-for list="{{ list }}" as="e" hint-placeholder-count="7">
+            <div onClick="{{ e.onClick }}" style="display:flex;gap:8px;padding:{{ e.pad }};cursor:default;border-bottom:1px solid color-mix(in srgb,#1d1f20 8%,transparent);background:{{ e.bg }}">
+              <span style="flex:none;width:6px;height:6px;margin-top:6px;border-radius:50%;background:{{ e.dot }}"></span>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px">
+                <div style="font-weight:{{ e.weight }};line-height:1.3;text-wrap:pretty">{{ e.title }}</div>
+                <div style="font-size:11px;color:color-mix(in srgb,#1d1f20 55%,transparent);font-family:var(--font-heading);letter-spacing:0.04em;text-transform:uppercase">{{ e.meta }}</div>
+                <sc-if value="{{ e.showSnippet }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:12.5px;line-height:1.45;color:color-mix(in srgb,#1d1f20 68%,transparent);text-wrap:pretty">{{ e.snippet }}</div>
+                </sc-if>
+              </div>
+              <button onClick="{{ e.onBookmark }}" title="Bookmark" style="flex:none;border:0;background:transparent;padding:2px;cursor:default;color:{{ e.markColor }}">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="{{ e.markFill }}" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 2.5h8v11l-4-3-4 3z"></path></svg>
+              </button>
+            </div>
+          </sc-for>
+          <sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:28px 16px;text-align:center;font-size:12.5px;color:color-mix(in srgb,#1d1f20 55%,transparent)">{{ emptyText }}</div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:var(--color-bg)">
+        <sc-if value="{{ hasArticle }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1;min-height:0;overflow:auto">
+            <div style="max-width:660px;margin:0 auto;padding:34px 40px 60px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <span style="font-family:var(--font-heading);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--color-accent-700)">{{ article.feed }}</span>
+                <span style="flex:1;height:1px;background:var(--color-divider)"></span>
+                <button onClick="{{ toggleBookmark }}" style="display:inline-flex;align-items:center;gap:5px;font-family:var(--font-heading);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;cursor:default;padding:3px 9px;border:1px solid {{ articleMarkBorder }};background:{{ articleMarkBg }};color:{{ articleMarkFg }}">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="{{ articleMarkFill }}" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 2.5h8v11l-4-3-4 3z"></path></svg>
+                  {{ articleMarkLabel }}
+                </button>
+                <button onClick="{{ toggleRead }}" style="font-family:var(--font-heading);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;cursor:default;padding:3px 9px;border:1px solid var(--color-divider);background:transparent;color:var(--color-text)">{{ readLabel }}</button>
+              </div>
+              <h2 style="margin:0 0 8px;text-wrap:pretty">{{ article.title }}</h2>
+              <div style="font-size:12px;color:color-mix(in srgb,#1d1f20 55%,transparent);margin-bottom:16px">{{ articleByline }}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:22px">
+                <sc-for list="{{ articleTags }}" as="t" hint-placeholder-count="2">
+                  <span class="tag tag-outline" style="font-size:11px">{{ t.label }}</span>
+                </sc-for>
+              </div>
+              <sc-for list="{{ articleBody }}" as="p" hint-placeholder-count="3">
+                <p style="font-size:15.5px;line-height:1.65;margin:0 0 15px;text-wrap:pretty">{{ p.text }}</p>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ noArticle }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;color:color-mix(in srgb,#1d1f20 45%,transparent);font-size:13px">Select an entry</div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div style="flex:none;height:26px;display:flex;align-items:center;gap:16px;padding:0 12px;background:var(--color-surface);border-top:1px solid var(--color-divider);font-size:11px;color:color-mix(in srgb,#1d1f20 52%,transparent);font-family:var(--font-heading);letter-spacing:0.06em;text-transform:uppercase">
+      <span>{{ statusLine }}</span>
+      <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+        <span style="color:var(--color-accent-800);border:1px solid var(--color-accent);padding:0 6px">{{ toast }}</span>
+      </sc-if>
+      <div style="flex:1"></div>
+      <span>J / K move · B bookmark · U unread · N new feed · / search</span>
+    </div>
+
+    <sc-if value="{{ showAddFeed }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeAddFeed }}" style="position:absolute;inset:0;background:color-mix(in srgb,#1d1f20 32%,transparent);display:flex;align-items:flex-start;justify-content:center;padding-top:76px">
+        <div onClick="{{ stop }}" class="blueprint" style="width:420px;background:var(--color-bg);padding:20px;box-shadow:var(--shadow-lg)">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <h4 style="margin:0 0 14px">Add a feed</h4>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;font-family:var(--font-heading);letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb,#1d1f20 60%,transparent)">
+              Feed URL
+              <input value="{{ formUrl }}" onChange="{{ onFormUrl }}" autoFocus="{{ true }}" placeholder="https://example.com/feed.xml" style="font-size:13.5px;padding:6px 8px;border:1px solid var(--color-divider);background:var(--color-surface);color:var(--color-text);border-radius:2px;font-family:var(--font-body);letter-spacing:0">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;font-family:var(--font-heading);letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb,#1d1f20 60%,transparent)">
+              Title
+              <input value="{{ formName }}" onChange="{{ onFormName }}" placeholder="Auto-detected from the feed" style="font-size:13.5px;padding:6px 8px;border:1px solid var(--color-divider);background:var(--color-surface);color:var(--color-text);border-radius:2px;font-family:var(--font-body);letter-spacing:0">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:3px;font-size:11px;font-family:var(--font-heading);letter-spacing:0.08em;text-transform:uppercase;color:color-mix(in srgb,#1d1f20 60%,transparent)">
+              Folder
+              <select value="{{ formParent }}" onChange="{{ onFormParent }}" style="font-size:13.5px;padding:6px 8px;border:1px solid var(--color-divider);background:var(--color-surface);color:var(--color-text);border-radius:2px;font-family:var(--font-body);letter-spacing:0">
+                <sc-for list="{{ folderOptions }}" as="o" hint-placeholder-count="4">
+                  <option value="{{ o.value }}">{{ o.label }}</option>
+                </sc-for>
+              </select>
+            </label>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">
+            <button class="btn btn-secondary" onClick="{{ closeAddFeed }}">Cancel</button>
+            <button class="btn btn-primary" onClick="{{ submitFeed }}">Subscribe</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Comfortable&quot;,&quot;Compact&quot;],&quot;default&quot;:&quot;Comfortable&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;List&quot;},&quot;showSnippets&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;List&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const N = (id, type, name, parentId, extra) => Object.assign({ id, type, name, parentId, collapsed: false }, extra || {});
+    const nodes = [
+      N('f_tech', 'folder', 'Technology', null),
+      N('s_ars', 'feed', 'Ars Technica', 'f_tech', { url: 'arstechnica.com/feed' }),
+      N('s_hn', 'feed', 'Hacker News', 'f_tech', { url: 'news.ycombinator.com/rss' }),
+      N('f_infra', 'folder', 'Infrastructure', 'f_tech'),
+      N('s_dc', 'feed', 'Datacenter Dispatch', 'f_infra', { url: 'dcdispatch.io/rss' }),
+      N('s_pl', 'feed', 'Packet Loss Weekly', 'f_infra', { url: 'packetloss.dev/feed' }),
+      N('f_design', 'folder', 'Design', null),
+      N('s_tw', 'feed', 'Typewolf', 'f_design', { url: 'typewolf.com/feed' }),
+      N('s_dsw', 'feed', 'Design Systems Weekly', 'f_design', { url: 'dsweekly.news/rss' }),
+      N('f_sci', 'folder', 'Science', null),
+      N('s_qm', 'feed', 'Quanta Magazine', 'f_sci', { url: 'quantamagazine.org/feed' }),
+      N('s_lr', 'feed', 'Longreads', null, { url: 'longreads.com/feed' })
+    ];
+    let k = 0;
+    const E = (feedId, title, ago, author, snippet, p2) => ({
+      id: 'e' + (++k), feedId, title, ago, author, snippet, read: false, marked: false,
+      body: [snippet, p2]
+    });
+    const entries = [
+      E('s_ars', 'Inside the quiet rewrite of the kernel scheduler', '32m', 'R. Odell', 'A two-year refactor landed last week with no announcement and a twelve percent improvement in tail latency under mixed workloads.', 'The maintainers say the win comes almost entirely from dropping a cache that nobody had measured since 2019.'),
+      E('s_ars', 'The last serial port: why industrial PCs refuse to die', '3h', 'M. Iqbal', 'Factory floors still run on a connector designed in 1969, and the machines that speak it will outlive the companies that sold them.', 'Replacing one line of a production cell costs more than a decade of spare parts, so the ports stay.'),
+      E('s_ars', 'A field guide to the new repairability rules', '1d', 'S. Petrov', 'The rules take effect in March and they change what a manufacturer is allowed to glue, solder, or pair to a serial number.', 'Three vendors have already published schematics rather than argue about the definition of a spare part.'),
+      E('s_hn', 'Show HN: I mapped every undersea cable landing point', '1h', 'kvist', 'A weekend project turned into eighteen months of public filings, harbour permits, and one very patient boat operator.', 'The map is static SVG, eleven kilobytes, and loads faster than the tile server it replaced.'),
+      E('s_hn', 'Ask HN: what broke when you moved off cron?', '5h', 'tmb', 'The thread is four hundred comments of scheduler grief, and almost every story starts with a timezone.', 'The consensus: keep cron for the boring things and reserve the workflow engine for work that can fail halfway.'),
+      E('s_dc', 'Liquid cooling retrofits are cheaper than the quote says', '2h', 'A. Renner', 'Operators who priced a full retrofit in 2024 are finding the manifold work costs a third of the original estimate.', 'The savings are in the racks nobody wanted to touch — the ones already plumbed for a chiller loop that was never used.'),
+      E('s_dc', 'Grid operators are now the gatekeepers of new capacity', '1d', 'A. Renner', 'Interconnection queues, not land or silicon, decide where the next hundred megawatts of compute gets built.', 'Two regions have started publishing queue positions, which has quietly turned siting into a public process.'),
+      E('s_pl', 'BGP leaks of the quarter, annotated', '4h', 'noc@plw', 'Four leaks, three of them from the same vendor template, and one that reached ninety countries before anyone filed a ticket.', 'Every one of them would have been caught by an origin filter that takes a morning to deploy.'),
+      E('s_pl', 'Anycast is not a load balancer', '2d', 'noc@plw', 'Anycast routes to the nearest announcement, which is a statement about topology and not about how busy that site happens to be.', 'Teams that treat it as balancing discover the difference during a regional failover, at the worst possible hour.'),
+      E('s_tw', 'Condensed grotesques are having a moment again', '6h', 'J. Coles', 'After a decade of wide, soft, friendly type, editorial designers are tightening everything back up.', 'The revival is practical: condensed faces buy two extra words in a headline without dropping a size.'),
+      E('s_tw', 'Site of the week: a bureau that sets everything in one weight', '2d', 'J. Coles', 'One family, one weight, one size ratio — and the result reads as more deliberate than any of the multi-axis sites around it.', 'Hierarchy is carried entirely by space and rule weight, which is harder and much quieter.'),
+      E('s_dsw', 'Tokens are a contract, not a palette', '8h', 'Editors', 'A token that means "the color of a primary button" survives a rebrand. A token named blue-500 does not.', 'The teams that got this right renamed everything once, early, and have not touched the layer since.'),
+      E('s_dsw', 'When to fork a component instead of adding a prop', '3d', 'Editors', 'The eleventh boolean is a message: two components are wearing one name and fighting over the same render path.', 'Forking costs a file. The eleventh boolean costs every future reader of that file.'),
+      E('s_qm', 'A new proof tightens the bound on sphere packing', '12h', 'C. Oduya', 'The improvement is small in absolute terms and enormous in what it implies about the methods that produced it.', 'Three groups had independently circled the same construction; one of them finished the argument in a hotel lobby.'),
+      E('s_qm', 'Cells keep time without a clock', '2d', 'C. Oduya', 'Circadian rhythm survives in cells stripped of every structure biologists assumed was doing the counting.', 'What remains is a chemical oscillation that is stubborn, cheap, and roughly twenty-four hours long.'),
+      E('s_lr', 'The mapmakers who drew a country that was not there', '1d', 'H. Marsh', 'For eleven years an atlas publisher printed a borderline that existed only as a compromise between two of its editors.', 'The line was copied into school textbooks, then into a treaty draft, before a cartographer noticed the source.'),
+      E('s_lr', 'Twelve hours in the last analog switchboard', '4d', 'H. Marsh', 'It connects nine hundred lines in a valley where fibre has not arrived, and it is operated by two sisters in shifts.', 'They know every caller by the pattern of their ring, which is a kind of routing table nobody wrote down.')
+    ];
+    let saved = null;
+    try {
+      const raw = window.localStorage.getItem('ferrite.library.v1');
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p && Array.isArray(p.nodes) && Array.isArray(p.entries)) saved = p;
+      }
+    } catch (err) { saved = null; }
+    this.state = {
+      nodes: saved ? saved.nodes : nodes,
+      entries: saved ? saved.entries : entries,
+      toast: '',
+      sel: { kind: 'all', id: null },
+      selEntry: null,
+      hoverId: null, renamingId: null, renameValue: '',
+      dragId: null, dropId: null, dropRoot: false,
+      showAddFeed: false, form: { url: '', name: '', parent: '' },
+      query: '', activeTags: []
+    };
+    this.searchRef = React.createRef();
+    this.fileRef = React.createRef();
+    this.onKey = this.onKey.bind(this);
+  }
+
+  componentDidMount() { window.addEventListener('keydown', this.onKey); this.persist(); }
+  mutate(updater) { this.setState(updater, () => this.persist()); }
+  componentWillUnmount() { window.removeEventListener('keydown', this.onKey); clearTimeout(this._toastT); }
+
+  persist() {
+    try {
+      window.localStorage.setItem('ferrite.library.v1', JSON.stringify({ nodes: this.state.nodes, entries: this.state.entries }));
+    } catch (err) { this.say('Storage full — export a backup'); }
+  }
+  say(msg) {
+    clearTimeout(this._toastT);
+    this.setState({ toast: msg });
+    this._toastT = setTimeout(() => this.setState({ toast: '' }), 2600);
+  }
+
+  /* ---------- export / import ---------- */
+  download(name, mime, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: mime }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  stamp() { return new Date().toISOString().slice(0, 10); }
+  exportJSON() {
+    const payload = { app: 'ferrite', version: 1, exported: new Date().toISOString(), nodes: this.state.nodes, entries: this.state.entries };
+    this.download('ferrite-' + this.stamp() + '.json', 'application/json', JSON.stringify(payload, null, 2));
+    this.say('Exported JSON');
+  }
+  csvCell(v) {
+    const s = v == null ? '' : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  exportCSV() {
+    const head = ['entry_id', 'feed', 'feed_url', 'folder_path', 'tags', 'title', 'author', 'age', 'snippet', 'read', 'bookmarked'];
+    const rows = this.state.entries.map(e => {
+      const feed = this.node(e.feedId);
+      const tags = this.tagsFor(e.feedId);
+      return [
+        e.id, feed ? feed.name : '', feed ? (feed.url || '') : '',
+        this.ancestors(e.feedId).map(a => a.name).join(' / '),
+        tags.join('; '), e.title, e.author, e.ago, e.snippet,
+        e.read ? 'yes' : 'no', e.marked ? 'yes' : 'no'
+      ].map(c => this.csvCell(c)).join(',');
+    });
+    this.download('ferrite-' + this.stamp() + '.csv', 'text/csv', [head.join(',')].concat(rows).join('\n'));
+    this.say('Exported CSV');
+  }
+  parseCSV(text) {
+    const rows = []; let row = [], cell = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+        else if (c === '"') q = false;
+        else cell += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(cell); cell = ''; }
+      else if (c === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+      else if (c !== '\r') cell += c;
+    }
+    if (cell.length || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter(r => r.length > 1 || (r[0] || '').trim() !== '');
+  }
+  importCSV(text) {
+    const rows = this.parseCSV(text);
+    if (rows.length < 2) { this.say('Nothing to import'); return; }
+    const head = rows[0].map(h => h.trim().toLowerCase());
+    const col = name => head.indexOf(name);
+    const nodes = [];
+    let seq = 0;
+    const folderId = path => {
+      if (!path) return null;
+      const parts = path.split('/').map(p => p.trim()).filter(Boolean);
+      let parent = null;
+      parts.forEach(name => {
+        let f = nodes.find(n => n.type === 'folder' && n.name === name && n.parentId === parent);
+        if (!f) { f = { id: 'if' + (++seq), type: 'folder', name, parentId: parent, collapsed: false }; nodes.push(f); }
+        parent = f.id;
+      });
+      return parent;
+    };
+    const entries = [];
+    rows.slice(1).forEach(r => {
+      const get = n => { const i = col(n); return i >= 0 ? r[i] : ''; };
+      const feedName = get('feed') || 'Imported';
+      const parent = folderId(get('folder_path'));
+      let feed = nodes.find(n => n.type === 'feed' && n.name === feedName && n.parentId === parent);
+      if (!feed) { feed = { id: 'is' + (++seq), type: 'feed', name: feedName, parentId: parent, collapsed: false, url: get('feed_url') }; nodes.push(feed); }
+      const snippet = get('snippet');
+      entries.push({
+        id: get('entry_id') || 'ie' + (++seq), feedId: feed.id,
+        title: get('title') || 'Untitled', author: get('author'), ago: get('age') || '—',
+        snippet, body: [snippet], read: get('read') === 'yes', marked: get('bookmarked') === 'yes'
+      });
+    });
+    this.mutate({ nodes, entries, sel: { kind: 'all', id: null }, selEntry: null, activeTags: [], query: '' });
+    this.say('Imported ' + entries.length + ' entries from CSV');
+  }
+  importJSON(text) {
+    const p = JSON.parse(text);
+    if (!p || !Array.isArray(p.nodes) || !Array.isArray(p.entries)) throw new Error('shape');
+    this.mutate({ nodes: p.nodes, entries: p.entries, sel: { kind: 'all', id: null }, selEntry: null, activeTags: [], query: '' });
+    this.say('Imported ' + p.entries.length + ' entries from JSON');
+  }
+
+  /* ---------- tree helpers ---------- */
+  node(id) { return this.state.nodes.find(n => n.id === id); }
+  childrenOf(id) { return this.state.nodes.filter(n => n.parentId === id); }
+  ancestors(id) {
+    const out = []; let n = this.node(id);
+    while (n && n.parentId) { const p = this.node(n.parentId); if (!p) break; out.unshift(p); n = p; }
+    return out;
+  }
+  feedsUnder(id) {
+    const n = this.node(id); if (!n) return [];
+    if (n.type === 'feed') return [n.id];
+    return this.childrenOf(id).reduce((a, c) => a.concat(this.feedsUnder(c.id)), []);
+  }
+  isDescendant(maybeAncestor, id) {
+    let n = this.node(id);
+    while (n && n.parentId) { if (n.parentId === maybeAncestor) return true; n = this.node(n.parentId); }
+    return false;
+  }
+  tagsFor(feedId) {
+    const feed = this.node(feedId);
+    if (!feed) return [];
+    return this.ancestors(feedId).map(a => a.name).concat([feed.name]);
+  }
+  flatten() {
+    const out = [];
+    const walk = (parentId, depth) => {
+      this.state.nodes.filter(n => n.parentId === parentId).forEach(n => {
+        out.push({ n, depth });
+        if (n.type === 'folder' && !n.collapsed) walk(n.id, depth + 1);
+      });
+    };
+    walk(null, 0);
+    return out;
+  }
+  unreadFor(id) {
+    const feeds = this.feedsUnder(id);
+    return this.state.entries.filter(e => !e.read && feeds.indexOf(e.feedId) >= 0).length;
+  }
+
+  /* ---------- mutations ---------- */
+  patchEntry(id, patch) {
+    this.mutate(s => ({ entries: s.entries.map(e => e.id === id ? Object.assign({}, e, patch) : e) }));
+  }
+  toggleMark(id) {
+    this.mutate(s => ({ entries: s.entries.map(e => e.id === id ? Object.assign({}, e, { marked: !e.marked }) : e) }));
+  }
+  moveNode(dragId, targetId) {
+    if (!dragId || dragId === targetId) return;
+    const target = targetId ? this.node(targetId) : null;
+    const newParent = !target ? null : (target.type === 'folder' ? target.id : target.parentId);
+    if (dragId === newParent || this.isDescendant(dragId, newParent || '')) return;
+    this.mutate(s => {
+      const nodes = s.nodes.slice();
+      const i = nodes.findIndex(n => n.id === dragId);
+      const moved = Object.assign({}, nodes[i], { parentId: newParent });
+      nodes.splice(i, 1);
+      let at = target ? nodes.findIndex(n => n.id === target.id) + 1 : nodes.length;
+      if (at < 0) at = nodes.length;
+      nodes.splice(at, 0, moved);
+      return { nodes, dragId: null, dropId: null, dropRoot: false };
+    });
+  }
+  deleteNode(id) {
+    this.mutate(s => {
+      const n = s.nodes.find(x => x.id === id);
+      const nodes = s.nodes.filter(x => x.id !== id).map(x => x.parentId === id ? Object.assign({}, x, { parentId: n ? n.parentId : null }) : x);
+      const feedGone = n && n.type === 'feed';
+      return {
+        nodes,
+        entries: feedGone ? s.entries.filter(e => e.feedId !== id) : s.entries,
+        sel: s.sel.id === id ? { kind: 'all', id: null } : s.sel
+      };
+    });
+  }
+
+  /* ---------- keyboard ---------- */
+  onKey(e) {
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA')) {
+      if (e.key === 'Escape') { t.blur(); this.setState({ showAddFeed: false, renamingId: null }); }
+      return;
+    }
+    const list = this.visibleEntries();
+    const idx = list.findIndex(x => x.id === this.state.selEntry);
+    const open = i => { const it = list[i]; if (it) { this.setState({ selEntry: it.id }); this.patchEntry(it.id, { read: true }); } };
+    if (e.key === 'j') { e.preventDefault(); open(Math.min(list.length - 1, idx + 1)); }
+    else if (e.key === 'k') { e.preventDefault(); open(Math.max(0, idx - 1)); }
+    else if (e.key === 'b' && this.state.selEntry) { this.toggleMark(this.state.selEntry); }
+    else if (e.key === 'u' && this.state.selEntry) {
+      const cur = this.state.entries.find(x => x.id === this.state.selEntry);
+      this.patchEntry(cur.id, { read: !cur.read });
+    }
+    else if (e.key === 'n') { e.preventDefault(); this.setState({ showAddFeed: true }); }
+    else if (e.key === '/') {
+      e.preventDefault();
+      this.setState({ sel: { kind: 'bookmarks', id: null } }, () => {
+        if (this.searchRef.current) this.searchRef.current.focus();
+      });
+    }
+    else if (e.key === 'Escape') this.setState({ showAddFeed: false, renamingId: null });
+  }
+
+  /* ---------- selection / filtering ---------- */
+  visibleEntries() {
+    const s = this.state;
+    let list = s.entries;
+    if (s.sel.kind === 'unread') list = list.filter(e => !e.read);
+    else if (s.sel.kind === 'node') {
+      const feeds = this.feedsUnder(s.sel.id);
+      list = list.filter(e => feeds.indexOf(e.feedId) >= 0);
+    } else if (s.sel.kind === 'bookmarks') {
+      const q = s.query.trim().toLowerCase();
+      list = list.filter(e => e.marked)
+        .filter(e => {
+          const tags = this.tagsFor(e.feedId);
+          const okTags = s.activeTags.every(t => tags.indexOf(t) >= 0);
+          if (!okTags) return false;
+          if (!q) return true;
+          const hay = (e.title + ' ' + e.snippet + ' ' + tags.join(' ')).toLowerCase();
+          return hay.indexOf(q) >= 0;
+        });
+    }
+    return list;
+  }
+
+  renderVals() {
+    const s = this.state;
+    const compact = (this.props.density ?? 'Comfortable') === 'Compact';
+    const showSnippets = (this.props.showSnippets ?? true) && !compact;
+    const accent = 'var(--color-accent)';
+    const selBg = 'color-mix(in srgb, var(--color-accent) 22%, transparent)';
+    const hoverBg = 'color-mix(in srgb, #1d1f20 6%, transparent)';
+    const bookmarkMode = s.sel.kind === 'bookmarks';
+
+    const rows = this.flatten().map(({ n, depth }) => {
+      const selected = s.sel.kind === 'node' && s.sel.id === n.id;
+      const hovered = s.hoverId === n.id;
+      const renaming = s.renamingId === n.id;
+      const unread = this.unreadFor(n.id);
+      return {
+        id: n.id, name: n.name,
+        isFolder: n.type === 'folder', isFeed: n.type === 'feed',
+        renaming, showName: !renaming,
+        pad: 10 + depth * 14,
+        bg: selected ? selBg : (s.dropId === n.id ? 'color-mix(in srgb, var(--color-accent) 12%, transparent)' : (hovered ? hoverBg : 'transparent')),
+        dropShadow: s.dropId === n.id ? 'inset 0 0 0 1px ' + accent : 'none',
+        opacity: s.dragId === n.id ? 0.4 : 1,
+        weight: selected ? 600 : 400,
+        chevColor: n.type === 'folder' ? 'color-mix(in srgb, #1d1f20 55%, transparent)' : 'transparent',
+        chevRotate: n.type === 'folder' && !n.collapsed ? 'rotate(90deg)' : 'rotate(0deg)',
+        actionsOpacity: hovered && !renaming ? 1 : 0,
+        badge: unread > 0 ? String(unread) : '',
+        badgeColor: unread > 0 ? 'var(--color-accent-700)' : 'transparent',
+        badgeWeight: 700,
+        onClick: () => this.setState({ sel: { kind: 'node', id: n.id } }),
+        onEnter: () => this.setState({ hoverId: n.id }),
+        onLeave: () => this.setState(st => st.hoverId === n.id ? { hoverId: null } : null),
+        onToggle: (e) => {
+          e.stopPropagation();
+          if (n.type !== 'folder') return;
+          this.mutate(st => ({ nodes: st.nodes.map(x => x.id === n.id ? Object.assign({}, x, { collapsed: !x.collapsed }) : x) }));
+        },
+        onRename: (e) => { e.stopPropagation(); this.setState({ renamingId: n.id, renameValue: n.name }); },
+        onDelete: (e) => { e.stopPropagation(); this.deleteNode(n.id); },
+        onDragStart: (e) => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', n.id); this.setState({ dragId: n.id }); },
+        onDragOver: (e) => { e.preventDefault(); e.stopPropagation(); if (s.dropId !== n.id) this.setState({ dropId: n.id, dropRoot: false }); },
+        onDrop: (e) => { e.preventDefault(); e.stopPropagation(); this.moveNode(e.dataTransfer.getData('text/plain') || s.dragId, n.id); },
+        onDragEnd: () => this.setState({ dragId: null, dropId: null, dropRoot: false })
+      };
+    });
+
+    const list = this.visibleEntries();
+    const listVals = list.map(e => {
+      const feed = this.node(e.feedId);
+      const active = s.selEntry === e.id;
+      return {
+        id: e.id, title: e.title, snippet: e.snippet,
+        meta: (feed ? feed.name : 'Removed feed') + ' · ' + e.ago + ' · ' + e.author,
+        showSnippet: showSnippets,
+        pad: compact ? '7px 10px' : '10px 12px',
+        bg: active ? selBg : 'transparent',
+        weight: e.read ? 400 : 600,
+        dot: e.read ? 'transparent' : accent,
+        markColor: e.marked ? 'var(--color-accent-700)' : 'color-mix(in srgb, #1d1f20 30%, transparent)',
+        markFill: e.marked ? 'currentColor' : 'none',
+        onClick: () => { this.setState({ selEntry: e.id }); this.patchEntry(e.id, { read: true }); },
+        onBookmark: (ev) => { ev.stopPropagation(); this.toggleMark(e.id); }
+      };
+    });
+
+    const article = s.selEntry ? s.entries.find(e => e.id === s.selEntry) : null;
+    const aFeed = article ? this.node(article.feedId) : null;
+    const aTags = article ? this.tagsFor(article.feedId) : [];
+
+    const allTags = [];
+    s.entries.filter(e => e.marked).forEach(e => this.tagsFor(e.feedId).forEach(t => { if (allTags.indexOf(t) < 0) allTags.push(t); }));
+
+    const titleFor = () => {
+      if (s.sel.kind === 'all') return 'All Entries';
+      if (s.sel.kind === 'unread') return 'Unread';
+      if (s.sel.kind === 'bookmarks') return 'Bookmarks';
+      const n = this.node(s.sel.id);
+      return n ? n.name : 'All Entries';
+    };
+    const sub = s.sel.kind === 'node' && this.node(s.sel.id) && this.node(s.sel.id).type === 'folder'
+      ? this.feedsUnder(s.sel.id).length + ' feeds · ' + list.length + ' entries'
+      : list.length + ' entries';
+
+    return {
+      rows, list: listVals,
+      listEmpty: list.length === 0,
+      emptyText: bookmarkMode ? 'No bookmarks match these tags and keywords.' : 'Nothing here yet.',
+      listTitle: titleFor(),
+      listSubtitle: sub,
+      crumb: s.sel.kind === 'node' ? this.ancestors(s.sel.id).map(a => a.name).concat([titleFor()]).join('  ›  ') : titleFor(),
+      bookmarkMode, notBookmarkMode: !bookmarkMode,
+      totalCount: s.entries.length,
+      unreadCount: s.entries.filter(e => !e.read).length,
+      bookmarkCount: s.entries.filter(e => e.marked).length,
+      allBg: s.sel.kind === 'all' ? selBg : 'transparent',
+      unreadBg: s.sel.kind === 'unread' ? selBg : 'transparent',
+      bmBg: bookmarkMode ? selBg : 'transparent',
+      rootDashColor: s.dropRoot ? accent : 'color-mix(in srgb, #1d1f20 14%, transparent)',
+      statusLine: s.entries.filter(e => !e.read).length + ' unread · ' + s.nodes.filter(n => n.type === 'feed').length + ' feeds · saved to this device',
+      toast: s.toast,
+      hasToast: !!s.toast,
+      exportJson: () => this.exportJSON(),
+      exportCsv: () => this.exportCSV(),
+      fileRef: this.fileRef,
+      pickImport: () => { if (this.fileRef.current) this.fileRef.current.click(); },
+      onImportFile: (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = String(reader.result || '');
+          try {
+            if (/\.csv$/i.test(file.name)) this.importCSV(text);
+            else this.importJSON(text);
+          } catch (err) { this.say('Could not read that file'); }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      },
+
+      selectAll: () => this.setState({ sel: { kind: 'all', id: null } }),
+      selectUnread: () => this.setState({ sel: { kind: 'unread', id: null } }),
+      selectBookmarks: () => this.setState({ sel: { kind: 'bookmarks', id: null } }),
+      markAllRead: () => {
+        const ids = list.map(e => e.id);
+        this.mutate(st => ({ entries: st.entries.map(e => ids.indexOf(e.id) >= 0 ? Object.assign({}, e, { read: true }) : e) }));
+      },
+      newFolder: () => {
+        const id = 'f' + Date.now();
+        this.mutate(st => ({
+          nodes: st.nodes.concat([{ id, type: 'folder', name: 'New Folder', parentId: null, collapsed: false }]),
+          renamingId: id, renameValue: 'New Folder'
+        }));
+      },
+
+      renameValue: s.renameValue,
+      onRenameInput: (e) => this.setState({ renameValue: e.target.value }),
+      onRenameKey: (e) => {
+        if (e.key === 'Enter') e.target.blur();
+        if (e.key === 'Escape') this.setState({ renamingId: null });
+      },
+      commitRename: () => {
+        const id = s.renamingId, v = s.renameValue.trim();
+        if (!id) return;
+        this.mutate(st => ({
+          nodes: v ? st.nodes.map(n => n.id === id ? Object.assign({}, n, { name: v }) : n) : st.nodes,
+          renamingId: null
+        }));
+      },
+
+      onRootOver: (e) => { e.preventDefault(); if (!s.dropRoot) this.setState({ dropRoot: true, dropId: null }); },
+      onRootDrop: (e) => { e.preventDefault(); this.moveNode(e.dataTransfer.getData('text/plain') || s.dragId, null); },
+
+      query: s.query,
+      searchRef: this.searchRef,
+      onQuery: (e) => this.setState({ query: e.target.value }),
+      tagChips: allTags.map(t => {
+        const on = s.activeTags.indexOf(t) >= 0;
+        return {
+          label: t,
+          bg: on ? accent : 'transparent',
+          fg: on ? 'var(--color-bg)' : 'var(--color-accent-700)',
+          border: on ? accent : 'var(--color-divider)',
+          onClick: () => this.setState(st => ({
+            activeTags: on ? st.activeTags.filter(x => x !== t) : st.activeTags.concat([t])
+          }))
+        };
+      }),
+
+      hasArticle: !!article, noArticle: !article,
+      article: article ? { title: article.title, feed: aFeed ? aFeed.name : 'Removed feed' } : { title: '', feed: '' },
+      articleByline: article ? article.author + ' · ' + article.ago + ' ago' : '',
+      articleBody: article ? article.body.map((text, i) => ({ id: i, text })) : [],
+      articleTags: aTags.map(t => ({ id: t, label: t })),
+      articleMarkLabel: article && article.marked ? 'Bookmarked' : 'Bookmark',
+      articleMarkFill: article && article.marked ? 'currentColor' : 'none',
+      articleMarkBg: article && article.marked ? 'color-mix(in srgb, var(--color-accent) 16%, transparent)' : 'transparent',
+      articleMarkFg: article && article.marked ? 'var(--color-accent-800)' : 'var(--color-text)',
+      articleMarkBorder: article && article.marked ? accent : 'var(--color-divider)',
+      readLabel: article && article.read ? 'Mark unread' : 'Mark read',
+      toggleBookmark: () => article && this.toggleMark(article.id),
+      toggleRead: () => article && this.patchEntry(article.id, { read: !article.read }),
+
+      showAddFeed: s.showAddFeed,
+      openAddFeed: () => this.setState({ showAddFeed: true }),
+      closeAddFeed: () => this.setState({ showAddFeed: false }),
+      stop: (e) => e.stopPropagation(),
+      formUrl: s.form.url, formName: s.form.name, formParent: s.form.parent,
+      onFormUrl: (e) => { const v = e.target.value; this.setState(st => ({ form: Object.assign({}, st.form, { url: v }) })); },
+      onFormName: (e) => { const v = e.target.value; this.setState(st => ({ form: Object.assign({}, st.form, { name: v }) })); },
+      onFormParent: (e) => { const v = e.target.value; this.setState(st => ({ form: Object.assign({}, st.form, { parent: v }) })); },
+      folderOptions: [{ id: 'root', value: '', label: 'Top level' }].concat(
+        s.nodes.filter(n => n.type === 'folder').map(n => ({
+          id: n.id, value: n.id,
+          label: this.ancestors(n.id).map(a => a.name).concat([n.name]).join(' / ')
+        }))
+      ),
+      submitFeed: () => {
+        const f = s.form;
+        const url = f.url.trim();
+        if (!url && !f.name.trim()) { this.setState({ showAddFeed: false }); return; }
+        const name = f.name.trim() || url.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+        const id = 's' + Date.now();
+        this.mutate(st => ({
+          nodes: st.nodes.concat([{ id, type: 'feed', name, parentId: f.parent || null, collapsed: false, url }]),
+          entries: st.entries.concat([{
+            id: 'x' + Date.now(), feedId: id, title: 'Welcome to ' + name,
+            ago: 'now', author: name, read: false, marked: false,
+            snippet: 'The feed was added and the first fetch is queued. New entries will appear here after the next refresh.',
+            body: ['The feed was added and the first fetch is queued.', 'Ferrite polls every fifteen minutes; you can force a refresh from the toolbar.']
+          }]),
+          showAddFeed: false, form: { url: '', name: '', parent: '' },
+          sel: { kind: 'node', id }
+        }));
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

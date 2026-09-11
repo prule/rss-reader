@@ -1,0 +1,10 @@
+{
+  "name": "Ferrite Reader",
+  "short_name": "Ferrite",
+  "description": "A local-first RSS reader. Feeds, folders and bookmarks stored on this device.",
+  "start_url": "./RSS%20Reader.dc.html",
+  "display": "standalone",
+  "background_color": "#f2f2f3",
+  "theme_color": "#5980a6",
+  "orientation": "any"
+}
