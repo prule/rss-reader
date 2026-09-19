@@ -15,6 +15,40 @@ export class FeedFetchError extends Error {
   }
 }
 
+/** A feed advertised by a page, as returned by the relay's discovery mode. */
+export interface DiscoveredFeed {
+  url: string;
+  type: 'rss' | 'atom' | 'json';
+  title: string;
+}
+
+/**
+ * Ask the relay which feeds a page advertises. Returns the discovered feeds
+ * (possibly empty); throws FeedFetchError when the page can't be reached.
+ */
+export async function discoverFeeds(pageUrl: string): Promise<DiscoveredFeed[]> {
+  const endpoint = `${RELAY_BASE}?discover=${encodeURIComponent(pageUrl)}`;
+  let res: Response;
+  try {
+    res = await fetch(endpoint);
+  } catch {
+    throw new FeedFetchError('Could not reach the relay', 'relay-error');
+  }
+  if (!res.ok) {
+    let kind: FeedFetchError['kind'] = 'relay-error';
+    try {
+      const body = (await res.json()) as { kind?: string; error?: string };
+      if (body.kind === 'unreachable' || body.kind === 'upstream-error') kind = body.kind;
+      throw new FeedFetchError(body.error ?? `Relay responded ${res.status}`, kind);
+    } catch (err) {
+      if (err instanceof FeedFetchError) throw err;
+      throw new FeedFetchError(`Relay responded ${res.status}`, kind);
+    }
+  }
+  const body = (await res.json()) as { feeds?: DiscoveredFeed[] };
+  return Array.isArray(body.feeds) ? body.feeds : [];
+}
+
 /** Fetch a feed document's raw text via the relay. Throws FeedFetchError. */
 export async function fetchFeedText(feedUrl: string): Promise<string> {
   const endpoint = `${RELAY_BASE}?url=${encodeURIComponent(feedUrl)}`;

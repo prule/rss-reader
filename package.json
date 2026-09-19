@@ -1,9 +1,9 @@
 {
-  "name": "ferrite-reader",
+  "name": "rss-reader-pwa",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Ferrite — a local-first RSS reader PWA. Feeds, folders and bookmarks stored on this device.",
+  "description": "RSS Reader — a local-first RSS reader PWA. Feeds, folders and bookmarks stored on this device.",
   "packageManager": "pnpm@11.18.0",
   "scripts": {
     "dev": "vite",
@@ -44,6 +44,7 @@
     "vite": "^6.0.7",
     "vite-plugin-pwa": "^0.21.1",
     "vitest": "^3.2.7",
+    "workbox-window": "^7.4.1",
     "wrangler": "^3.114.17"
   }
 }

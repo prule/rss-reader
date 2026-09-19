@@ -59,6 +59,29 @@ describe('parseFeed', () => {
     expect(item.body).toContain('A small improvement');
   });
 
+  it('decodes double-encoded HTML entities in titles and author', () => {
+    const feed = parseFeed(`<?xml version="1.0"?>
+<rss version="2.0"><channel>
+  <title>Ben &amp;amp; Jerry&amp;#8217;s Blog</title>
+  <item>
+    <title>The iPhone 18 Pro&amp;#8217;s camera &amp;#8212; reviewed</title>
+    <link>https://x/1</link><guid>g1</guid>
+    <dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/">Jos&amp;#233; Garc&amp;#237;a</dc:creator>
+  </item>
+</channel></rss>`);
+    expect(feed.title).toBe('Ben & Jerry’s Blog');
+    expect(feed.items[0].title).toBe('The iPhone 18 Pro’s camera — reviewed');
+    expect(feed.items[0].author).toBe('José García');
+  });
+
+  it('leaves a single-encoded ampersand intact (no over-decoding)', () => {
+    const feed = parseFeed(`<?xml version="1.0"?>
+<rss version="2.0"><channel><title>T</title>
+  <item><title>Tom &amp; Jerry</title><link>https://x/2</link><guid>g2</guid></item>
+</channel></rss>`);
+    expect(feed.items[0].title).toBe('Tom & Jerry');
+  });
+
   it('falls back to link, then a content hash, for identity', () => {
     const noGuid = `<rss><channel><item><title>T</title><link>https://x/1</link></item></channel></rss>`;
     expect(parseFeed(noGuid).items[0].sourceId).toBe('https://x/1');

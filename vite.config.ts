@@ -9,11 +9,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Ferrite Reader',
-        short_name: 'Ferrite',
+        name: 'RSS Reader',
+        short_name: 'RSS Reader',
         description:
           'A local-first RSS reader. Feeds, folders and bookmarks stored on this device.',
         start_url: './',

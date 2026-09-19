@@ -6,7 +6,7 @@ import { makeId } from './id';
 
 export function fromJSON(text: string): LibraryData {
   const data = migrate(JSON.parse(text));
-  if (!data) throw new Error('Not a Ferrite library export');
+  if (!data) throw new Error('Not an RSS Reader library export');
   return data;
 }
 

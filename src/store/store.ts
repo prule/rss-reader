@@ -1,7 +1,11 @@
 import { create } from 'zustand';
 import type { Entry, FeedForm, LibraryData, LibraryNode, Selection } from '../types';
+import type { DiscoveredFeed } from '../lib/relay';
 import { makeId } from '../lib/id';
 import { isDescendant, node, visibleEntries } from './selectors';
+
+/** Which step the add-feed dialog is showing. */
+export type AddPhase = 'input' | 'choosing' | 'none';
 
 export interface AppState {
   // Persisted
@@ -19,6 +23,11 @@ export interface AppState {
   dropRoot: boolean;
   showAddFeed: boolean;
   form: FeedForm;
+  // Discovery step of the add-feed dialog (transient; never persisted).
+  addPhase: AddPhase;
+  discovering: boolean;
+  candidates: DiscoveredFeed[];
+  selectedUrls: string[];
   query: string;
   activeTags: string[];
   toast: string;
@@ -48,6 +57,7 @@ export interface AppState {
   // Structure
   newFolder: () => void;
   addFeedNode: (name: string, url: string, parentId: string | null) => string;
+  markFetched: (feedId: string, when: number) => void;
   deleteNode: (id: string) => void;
   moveNode: (dragId: string | null, targetId: string | null) => void;
 
@@ -69,6 +79,13 @@ export interface AppState {
   openAddFeed: () => void;
   closeAddFeed: () => void;
   setForm: (patch: Partial<FeedForm>) => void;
+
+  // Add-feed discovery step
+  setDiscovering: (v: boolean) => void;
+  showCandidates: (candidates: DiscoveredFeed[]) => void;
+  showNoneFound: () => void;
+  toggleCandidate: (url: string) => void;
+  backToInput: () => void;
 
   // Search
   setQuery: (q: string) => void;
@@ -96,6 +113,10 @@ export const useStore = create<AppState>((set, get) => ({
   dropRoot: false,
   showAddFeed: false,
   form: emptyForm(),
+  addPhase: 'input',
+  discovering: false,
+  candidates: [],
+  selectedUrls: [],
   query: '',
   activeTags: [],
   toast: '',
@@ -169,6 +190,11 @@ export const useStore = create<AppState>((set, get) => ({
     return id;
   },
 
+  markFetched: (feedId, when) =>
+    set((s) => ({
+      nodes: s.nodes.map((n) => (n.id === feedId ? { ...n, fetchedAt: when } : n)),
+    })),
+
   deleteNode: (id) =>
     set((s) => {
       const n = s.nodes.find((x) => x.id === id);
@@ -224,9 +250,35 @@ export const useStore = create<AppState>((set, get) => ({
       return { entries: s.entries.map((e) => (ids.has(e.id) ? { ...e, read: true } : e)) };
     }),
 
-  openAddFeed: () => set({ showAddFeed: true }),
-  closeAddFeed: () => set({ showAddFeed: false, form: emptyForm() }),
+  openAddFeed: () =>
+    set({ showAddFeed: true, addPhase: 'input', discovering: false, candidates: [], selectedUrls: [] }),
+  closeAddFeed: () =>
+    set({
+      showAddFeed: false,
+      form: emptyForm(),
+      addPhase: 'input',
+      discovering: false,
+      candidates: [],
+      selectedUrls: [],
+    }),
   setForm: (patch) => set((s) => ({ form: { ...s.form, ...patch } })),
+
+  setDiscovering: (v) => set({ discovering: v }),
+  showCandidates: (candidates) =>
+    set({
+      addPhase: 'choosing',
+      discovering: false,
+      candidates,
+      selectedUrls: candidates.map((c) => c.url), // default: all selected
+    }),
+  showNoneFound: () => set({ addPhase: 'none', discovering: false, candidates: [], selectedUrls: [] }),
+  toggleCandidate: (url) =>
+    set((s) => ({
+      selectedUrls: s.selectedUrls.includes(url)
+        ? s.selectedUrls.filter((u) => u !== url)
+        : s.selectedUrls.concat([url]),
+    })),
+  backToInput: () => set({ addPhase: 'input', candidates: [], selectedUrls: [] }),
 
   setQuery: (q) => set({ query: q }),
   toggleTag: (tag) =>

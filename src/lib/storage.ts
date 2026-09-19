@@ -2,7 +2,7 @@
 import type { LibraryData } from '../types';
 import { migrate, toPayload } from './migrate';
 
-export const STORAGE_KEY = 'ferrite.library.v1';
+export const STORAGE_KEY = 'rss-reader-pwa.library.v1';
 
 export interface SaveResult {
   ok: boolean;

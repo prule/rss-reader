@@ -5,6 +5,7 @@ import { EntryList } from './components/EntryList';
 import { ArticlePane } from './components/ArticlePane';
 import { StatusBar } from './components/StatusBar';
 import { AddFeedDialog } from './components/AddFeedDialog';
+import { UpdatePrompt } from './components/UpdatePrompt';
 import { initPersistence } from './store/persist';
 import { useKeyboard } from './hooks/useKeyboard';
 import { useRefresh } from './hooks/useRefresh';
@@ -28,6 +29,7 @@ export function App() {
         <StatusBar />
       </div>
       <AddFeedDialog />
+      <UpdatePrompt />
     </div>
   );
 }

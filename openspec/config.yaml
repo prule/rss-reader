@@ -3,9 +3,9 @@ schema: spec-driven
 # Project context (optional)
 # This is shown to AI when creating artifacts.
 context: |
-  Product: Ferrite — a local-first RSS reader delivered as an installable PWA.
+  Product: RSS Reader — a local-first RSS reader delivered as an installable PWA.
   Everything (feeds, folder hierarchy, entries, read/bookmark state) is stored
-  on the device in localStorage under the key `ferrite.library.v1`. There is no
+  on the device in localStorage under the key `rss-reader-pwa.library.v1`. There is no
   server and no account; the app must work fully offline once loaded.
 
   Core capabilities:
