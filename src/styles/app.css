@@ -493,3 +493,62 @@ a:hover {
 .hidden-file {
   display: none;
 }
+
+/* Add-feed discovery step */
+.discover-intro {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  margin: 0 0 var(--space-3);
+}
+.discover-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--color-divider);
+  background: var(--color-surface);
+}
+.discover-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.discover-row + .discover-row {
+  border-top: 1px solid var(--color-divider);
+}
+.discover-row input {
+  accent-color: var(--color-accent);
+}
+.discover-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.discover-type {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+
+/* Update prompt */
+.update-prompt {
+  position: absolute;
+  right: var(--space-4);
+  bottom: calc(26px + var(--space-4));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-accent);
+  box-shadow: var(--shadow-lg);
+}
+.update-prompt-text {
+  font-size: 13.5px;
+}

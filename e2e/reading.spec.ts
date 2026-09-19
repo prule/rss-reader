@@ -33,7 +33,7 @@ describe('Reading entries', () => {
     await actor.attemptsTo(
       Navigate.to('/'),
       ExecuteScript.sync(
-        `window.localStorage.setItem('ferrite.library.v1', arguments[0]);`,
+        `window.localStorage.setItem('rss-reader-pwa.library.v1', arguments[0]);`,
       ).withArguments(JSON.stringify(SEED)),
       Navigate.reloadPage(),
       Click.on(entryRow),

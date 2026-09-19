@@ -1,4 +1,4 @@
-# Ferrite
+# RSS Reader
 
 A local-first RSS reader delivered as an installable PWA. Feeds, folders, entries,
 and bookmarks all live on the device in `localStorage` — there is no account and
@@ -74,6 +74,6 @@ pnpm preview           # serve the production build locally
 
 ## Data
 
-Stored under the `localStorage` key `ferrite.library.v1` as
+Stored under the `localStorage` key `rss-reader-pwa.library.v1` as
 `{ version, nodes, entries }`. Older payloads (including the design mock's
 versionless shape) are migrated forward on load without data loss.

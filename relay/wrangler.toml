@@ -1,8 +1,25 @@
-# Cloudflare Worker config for the Ferrite feed relay.
+# Cloudflare Worker config for the RSS Reader feed relay.
 # Local dev: `pnpm run relay:dev` (serves on http://localhost:8787), which the
 # Vite dev server proxies at /relay. Deploy: `wrangler deploy`.
-name = "ferrite-relay"
+name = "rss-reader-pwa-relay"
 main = "worker.ts"
 compatibility_date = "2024-11-01"
 
-# The relay is stateless — no KV, D1, R2, or Durable Object bindings.
+# The relay stores nothing — no KV, D1, R2, or Durable Object bindings.
+
+# Hardening configuration (read by worker.ts).
+[vars]
+# Browser origins allowed to call the relay (defense-in-depth). Add preview
+# deployment origins here if you use them.
+ALLOWED_ORIGINS = "https://rss-reader-pwa-bm4.pages.dev,http://localhost:5173"
+# Max upstream response size in bytes (1 MB).
+MAX_BYTES = "1000000"
+# Max redirect hops to follow (each re-validated).
+MAX_REDIRECTS = "3"
+
+# Per-client rate limit (keyed by IP in worker.ts). period must be 10 or 60.
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 60, period = 60 }

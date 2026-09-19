@@ -1,4 +1,4 @@
-// Core domain types for Ferrite's local library.
+// Core domain types for the RSS Reader's local library.
 
 export type NodeType = 'folder' | 'feed';
 
@@ -12,6 +12,8 @@ export interface LibraryNode {
   collapsed: boolean;
   /** Feed URL. Present on feeds, absent on folders. */
   url?: string;
+  /** Epoch ms of this feed's last successful fetch. Absent = never fetched. */
+  fetchedAt?: number;
 }
 
 /** A single feed entry, normalized from RSS/Atom (or created by the mock). */

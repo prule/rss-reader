@@ -33,11 +33,11 @@ export function Header() {
   const hasFeeds = feedCount(s.nodes) > 0;
 
   const exportJSON = () => {
-    download(`ferrite-${stamp()}.json`, 'application/json', buildJSON({ nodes: s.nodes, entries: s.entries }));
+    download(`rss-reader-${stamp()}.json`, 'application/json', buildJSON({ nodes: s.nodes, entries: s.entries }));
     s.say('Exported JSON');
   };
   const exportCSV = () => {
-    download(`ferrite-${stamp()}.csv`, 'text/csv', buildCSV(s.nodes, s.entries));
+    download(`rss-reader-${stamp()}.csv`, 'text/csv', buildCSV(s.nodes, s.entries));
     s.say('Exported CSV');
   };
   const onImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +61,7 @@ export function Header() {
   return (
     <header className="header">
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, minWidth: 0 }}>
-        <span className="brand">Ferrite</span>
+        <span className="brand">RSS Reader</span>
         <span className="brand-badge">Local</span>
         <span className="crumb">{crumb}</span>
       </div>
@@ -69,9 +69,9 @@ export function Header() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <button
           className="btn btn-secondary"
-          onClick={() => void refreshAll()}
+          onClick={() => void refreshAll({ force: true })}
           disabled={s.refreshing || !hasFeeds}
-          title="Refresh all feeds"
+          title="Refresh all feeds now"
           style={{ height: 26, fontSize: 12 }}
         >
           <RefreshCw size={14} strokeWidth={ICON_STROKE} absoluteStrokeWidth />

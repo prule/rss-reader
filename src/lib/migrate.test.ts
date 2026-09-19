@@ -76,4 +76,17 @@ describe('migrate', () => {
   it('toPayload stamps the current version', () => {
     expect(toPayload({ nodes: [], entries: [] }).version).toBe(CURRENT_VERSION);
   });
+
+  it('passes feed nodes through, preserving or leaving fetchedAt absent', () => {
+    const out = migrate({
+      version: 1,
+      nodes: [
+        { id: 's1', type: 'feed', name: 'A', parentId: null, collapsed: false, url: 'u', fetchedAt: 123 },
+        { id: 's2', type: 'feed', name: 'B', parentId: null, collapsed: false, url: 'u2' },
+      ],
+      entries: [],
+    })!;
+    expect(out.nodes.find((n) => n.id === 's1')!.fetchedAt).toBe(123);
+    expect(out.nodes.find((n) => n.id === 's2')!.fetchedAt).toBeUndefined();
+  });
 });

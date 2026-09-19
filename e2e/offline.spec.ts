@@ -41,7 +41,7 @@ describe('Offline behaviour', () => {
     await actor.attemptsTo(
       Navigate.to('/'),
       ExecuteScript.sync(
-        `window.localStorage.setItem('ferrite.library.v1', arguments[0]);
+        `window.localStorage.setItem('rss-reader-pwa.library.v1', arguments[0]);
          // Simulate no network: every fetch rejects, like being offline.
          window.fetch = () => Promise.reject(new Error('offline'));`,
       ).withArguments(JSON.stringify(SEED)),

@@ -2,7 +2,7 @@ import { Ensure, isPresent } from '@serenity-js/assertions';
 import { By, Navigate, PageElement } from '@serenity-js/web';
 import { describe, it } from './screenplay/serenity';
 
-describe('Ferrite', () => {
+describe('RSS Reader', () => {
   it('renders the app shell', async ({ actor }) => {
     await actor.attemptsTo(
       Navigate.to('/'),

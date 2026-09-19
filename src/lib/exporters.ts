@@ -5,14 +5,14 @@ import type { Entry, LibraryData, LibraryNode } from '../types';
 import { ancestors, node, tagsFor } from '../store/selectors';
 
 export interface JsonExport extends LibraryData {
-  app: 'ferrite';
+  app: 'rss-reader-pwa';
   version: 1;
   exported: string;
 }
 
 export function buildJSON(data: LibraryData, now: Date = new Date()): string {
   const payload: JsonExport = {
-    app: 'ferrite',
+    app: 'rss-reader-pwa',
     version: 1,
     exported: now.toISOString(),
     nodes: data.nodes,

@@ -99,3 +99,37 @@ describe('store mutations', () => {
     expect(useStore.getState().activeTags).toEqual([]);
   });
 });
+
+describe('add-feed discovery state', () => {
+  const cands = [
+    { url: 'https://x/feed', type: 'rss' as const, title: 'X' },
+    { url: 'https://y/feed', type: 'atom' as const, title: 'Y' },
+  ];
+
+  it('showCandidates enters the choosing phase with all selected by default', () => {
+    useStore.getState().openAddFeed();
+    useStore.getState().showCandidates(cands);
+    const s = useStore.getState();
+    expect(s.addPhase).toBe('choosing');
+    expect(s.discovering).toBe(false);
+    expect(s.selectedUrls).toEqual(['https://x/feed', 'https://y/feed']);
+  });
+
+  it('toggleCandidate flips a single selection', () => {
+    useStore.getState().showCandidates(cands);
+    useStore.getState().toggleCandidate('https://x/feed');
+    expect(useStore.getState().selectedUrls).toEqual(['https://y/feed']);
+  });
+
+  it('closeAddFeed clears all transient discovery state', () => {
+    useStore.getState().showCandidates(cands);
+    useStore.getState().setDiscovering(true);
+    useStore.getState().closeAddFeed();
+    const s = useStore.getState();
+    expect(s.showAddFeed).toBe(false);
+    expect(s.addPhase).toBe('input');
+    expect(s.discovering).toBe(false);
+    expect(s.candidates).toEqual([]);
+    expect(s.selectedUrls).toEqual([]);
+  });
+});

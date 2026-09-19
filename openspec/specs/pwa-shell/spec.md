@@ -1,6 +1,6 @@
 ## Purpose
 
-Makes Ferrite an installable Progressive Web App whose interface and stored library remain usable offline, fetching new content only when a network is available.
+Makes RSS Reader an installable Progressive Web App whose interface and stored library remain usable offline, fetching new content only when a network is available.
 
 ## Requirements
 
