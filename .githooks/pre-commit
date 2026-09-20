@@ -1,0 +1,17 @@
+#!/bin/sh
+# Format staged code before committing.
+# This hook is convenience; CI is enforcement (it can be skipped with --no-verify).
+set -e
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "pre-commit: pnpm not on PATH — skipping formatting. CI will check it." >&2
+  exit 0
+fi
+
+pnpm run format
+
+# Re-stage only what was already staged; never `git add .`
+echo "$staged" | xargs git add --
