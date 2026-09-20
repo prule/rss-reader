@@ -13,9 +13,11 @@ The hardened relay currently accepts both `http` and `https` targets and caps re
 ## Capabilities
 
 ### New Capabilities
+
 <!-- None. -->
 
 ### Modified Capabilities
+
 - `feed-relay`: Narrow the "Relay restricts what it will fetch" requirement from `http`/`https` to `https` only, including redirect hops. (The size cap is a configuration change within the existing "Relay caps response size" requirement and needs no spec text change.)
 
 ## Impact

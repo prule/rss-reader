@@ -90,7 +90,9 @@ function isBlockedIPv4([a, b, c]: [number, number, number, number]): boolean {
 }
 
 /** Reject non-http(s) schemes and internal/private targets, including encoded forms. */
-export function validateTarget(raw: string | null): { ok: true; url: URL } | { ok: false; reason: string } {
+export function validateTarget(
+  raw: string | null,
+): { ok: true; url: URL } | { ok: false; reason: string } {
   if (!raw) return { ok: false, reason: 'Missing target url' };
   let url: URL;
   try {
@@ -185,8 +187,16 @@ function decodeEntities(s: string): string {
     .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
     .replace(/&(amp|lt|gt|quot|apos|raquo|laquo|nbsp|mdash|ndash);/gi, (_, name) => {
       const map: Record<string, string> = {
-        amp: '&', lt: '<', gt: '>', quot: '"', apos: "'",
-        raquo: '»', laquo: '«', nbsp: ' ', mdash: '—', ndash: '–',
+        amp: '&',
+        lt: '<',
+        gt: '>',
+        quot: '"',
+        apos: "'",
+        raquo: '»',
+        laquo: '«',
+        nbsp: ' ',
+        mdash: '—',
+        ndash: '–',
       };
       return map[name.toLowerCase()] ?? _;
     });
@@ -247,27 +257,46 @@ async function followAndFetch(
         headers: { Accept: accept },
       });
     } catch {
-      return { ok: false, response: json(502, { error: 'Could not reach the feed', kind: 'unreachable' }, cors) };
+      return {
+        ok: false,
+        response: json(502, { error: 'Could not reach the feed', kind: 'unreachable' }, cors),
+      };
     }
 
     if (!REDIRECT_STATUSES.has(upstream.status)) return { ok: true, upstream, finalUrl: current };
 
     if (hop >= hopLimit) {
-      return { ok: false, response: json(502, { error: 'Too many redirects', kind: 'upstream-error' }, cors) };
+      return {
+        ok: false,
+        response: json(502, { error: 'Too many redirects', kind: 'upstream-error' }, cors),
+      };
     }
     const location = upstream.headers.get('location');
     if (!location) {
-      return { ok: false, response: json(502, { error: 'Redirect without a location', kind: 'upstream-error' }, cors) };
+      return {
+        ok: false,
+        response: json(502, { error: 'Redirect without a location', kind: 'upstream-error' }, cors),
+      };
     }
     let resolved: string;
     try {
       resolved = new URL(location, current).toString();
     } catch {
-      return { ok: false, response: json(502, { error: 'Invalid redirect location', kind: 'upstream-error' }, cors) };
+      return {
+        ok: false,
+        response: json(502, { error: 'Invalid redirect location', kind: 'upstream-error' }, cors),
+      };
     }
     const redirectCheck = validateTarget(resolved);
     if (!redirectCheck.ok) {
-      return { ok: false, response: json(502, { error: 'Redirect to a disallowed address', kind: 'upstream-error' }, cors) };
+      return {
+        ok: false,
+        response: json(
+          502,
+          { error: 'Redirect to a disallowed address', kind: 'upstream-error' },
+          cors,
+        ),
+      };
     }
     current = redirectCheck.url.toString();
   }
@@ -293,7 +322,11 @@ async function handleDiscover(
   if (!upstream.ok) {
     return json(
       502,
-      { error: `Site responded ${upstream.status}`, kind: 'upstream-error', status: upstream.status },
+      {
+        error: `Site responded ${upstream.status}`,
+        kind: 'upstream-error',
+        status: upstream.status,
+      },
       cors,
     );
   }
@@ -393,7 +426,11 @@ export async function handleRequest(request: Request, env: Env = {}): Promise<Re
   if (!upstream.ok) {
     return json(
       502,
-      { error: `Feed responded ${upstream.status}`, kind: 'upstream-error', status: upstream.status },
+      {
+        error: `Feed responded ${upstream.status}`,
+        kind: 'upstream-error',
+        status: upstream.status,
+      },
       cors,
     );
   }

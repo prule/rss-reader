@@ -30,13 +30,21 @@ const relayStub =
             { url: 'https://site.example/ai/feed', type: 'rss', title: 'Site AI' },
           ]
         : [];
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ feeds }) });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ feeds }),
+      });
       return;
     }
     const target = u.searchParams.get('url') ?? '';
     // A bare site URL is not a feed → 415 so the client falls back to discovery.
     if (target.endsWith('site.example') || target.endsWith('site.example/')) {
-      await route.fulfill({ status: 415, contentType: 'application/json', body: JSON.stringify({ kind: 'not-a-feed' }) });
+      await route.fulfill({
+        status: 415,
+        contentType: 'application/json',
+        body: JSON.stringify({ kind: 'not-a-feed' }),
+      });
       return;
     }
     await route.fulfill({
@@ -46,14 +54,30 @@ const relayStub =
     });
   };
 
-const urlField = PageElement.located(By.css('input[aria-label="Feed or site URL"]')).describedAs('the URL field');
-const subscribe = PageElement.located(By.cssContainingText('button', 'Subscribe')).describedAs('the Subscribe button');
-const addFeedButton = PageElement.located(By.cssContainingText('button', 'Add Feed')).describedAs('the Add Feed button');
-const feedsFound = PageElement.located(By.cssContainingText('h4', 'Feeds found')).describedAs('the discovery heading');
-const aiCheckbox = PageElement.located(By.css('input[aria-label="Site AI"]')).describedAs('the Site AI checkbox');
-const addSelected = PageElement.located(By.cssContainingText('button', 'Add selected')).describedAs('the Add selected button');
-const noFeedsFound = PageElement.located(By.cssContainingText('h4', 'No feeds found')).describedAs('the no-feeds heading');
-const addAnyway = PageElement.located(By.cssContainingText('button', 'Add URL anyway')).describedAs('the add-anyway button');
+const urlField = PageElement.located(By.css('input[aria-label="Feed or site URL"]')).describedAs(
+  'the URL field',
+);
+const subscribe = PageElement.located(By.cssContainingText('button', 'Subscribe')).describedAs(
+  'the Subscribe button',
+);
+const addFeedButton = PageElement.located(By.cssContainingText('button', 'Add Feed')).describedAs(
+  'the Add Feed button',
+);
+const feedsFound = PageElement.located(By.cssContainingText('h4', 'Feeds found')).describedAs(
+  'the discovery heading',
+);
+const aiCheckbox = PageElement.located(By.css('input[aria-label="Site AI"]')).describedAs(
+  'the Site AI checkbox',
+);
+const addSelected = PageElement.located(By.cssContainingText('button', 'Add selected')).describedAs(
+  'the Add selected button',
+);
+const noFeedsFound = PageElement.located(By.cssContainingText('h4', 'No feeds found')).describedAs(
+  'the no-feeds heading',
+);
+const addAnyway = PageElement.located(By.cssContainingText('button', 'Add URL anyway')).describedAs(
+  'the add-anyway button',
+);
 const treeNamed = (name: string) =>
   PageElement.located(By.cssContainingText('.tree-name', name)).describedAs(`the "${name}" feed`);
 
@@ -74,7 +98,10 @@ describe('Discovering feeds from a site URL', () => {
     );
   });
 
-  it('subscribes directly when the URL is already a feed (no selection step)', async ({ actor, page }) => {
+  it('subscribes directly when the URL is already a feed (no selection step)', async ({
+    actor,
+    page,
+  }) => {
     await page.route(/\?(discover|url)=/, relayStub(true));
     await actor.attemptsTo(
       Navigate.to('/'),

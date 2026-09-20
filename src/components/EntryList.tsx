@@ -43,7 +43,12 @@ export function EntryList() {
         {bookmarkMode ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
             <div className="search-box">
-              <span style={{ display: 'flex', color: 'color-mix(in srgb, var(--color-text) 55%, transparent)' }}>
+              <span
+                style={{
+                  display: 'flex',
+                  color: 'color-mix(in srgb, var(--color-text) 55%, transparent)',
+                }}
+              >
                 <IconSearch />
               </span>
               <input
@@ -91,10 +96,7 @@ export function EntryList() {
               onClick={() => s.openEntry(e.id)}
               style={{ padding: '10px 12px', background: active ? SEL_BG : 'transparent' }}
             >
-              <span
-                className="entry-dot"
-                style={{ background: e.read ? 'transparent' : ACCENT }}
-              />
+              <span className="entry-dot" style={{ background: e.read ? 'transparent' : ACCENT }} />
               <div className="entry-main">
                 <div className="entry-title" style={{ fontWeight: e.read ? 400 : 600 }}>
                   {e.title}
@@ -119,9 +121,7 @@ export function EntryList() {
         })}
         {list.length === 0 && (
           <div className="empty">
-            {bookmarkMode
-              ? 'No bookmarks match these tags and keywords.'
-              : 'Nothing here yet.'}
+            {bookmarkMode ? 'No bookmarks match these tags and keywords.' : 'Nothing here yet.'}
           </div>
         )}
       </div>

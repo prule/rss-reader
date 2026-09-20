@@ -1,12 +1,27 @@
 import { Ensure, isPresent, not } from '@serenity-js/assertions';
-import { By, Click, Enter, ExecuteScript, isVisible, Navigate, PageElement } from '@serenity-js/web';
+import {
+  By,
+  Click,
+  Enter,
+  ExecuteScript,
+  isVisible,
+  Navigate,
+  PageElement,
+} from '@serenity-js/web';
 import { describe, it } from './screenplay/serenity';
 
 const SEED = {
   version: 1,
   nodes: [
     { id: 'f_tech', type: 'folder', name: 'Technology', parentId: null, collapsed: false },
-    { id: 's_pl', type: 'feed', name: 'Packet Loss Weekly', parentId: 'f_tech', collapsed: false, url: 'u' },
+    {
+      id: 's_pl',
+      type: 'feed',
+      name: 'Packet Loss Weekly',
+      parentId: 'f_tech',
+      collapsed: false,
+      url: 'u',
+    },
   ],
   entries: [
     {
@@ -34,9 +49,9 @@ const bookmarksShortcut = PageElement.located(
 const searchField = PageElement.located(By.css('input[aria-label="Search bookmarks"]')).describedAs(
   'the bookmark search field',
 );
-const technologyChip = PageElement.located(
-  By.cssContainingText('.chip', 'Technology'),
-).describedAs('the Technology tag chip');
+const technologyChip = PageElement.located(By.cssContainingText('.chip', 'Technology')).describedAs(
+  'the Technology tag chip',
+);
 const result = PageElement.located(By.css('[data-testid="entry-e1"]')).describedAs('the bookmark');
 
 describe('Bookmarks', () => {

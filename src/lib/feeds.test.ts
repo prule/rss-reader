@@ -138,7 +138,10 @@ describe('addSelectedFeeds (batch)', () => {
 
   it('falls back to the discovered title when a feed fetch fails', async () => {
     mockFetch.mockRejectedValue(new Error('down'));
-    await addSelectedFeeds([{ url: 'https://x.example/feed', type: 'rss', title: 'Discovered Name' }], null);
+    await addSelectedFeeds(
+      [{ url: 'https://x.example/feed', type: 'rss', title: 'Discovered Name' }],
+      null,
+    );
     const f = useStore.getState().nodes.find((n) => n.type === 'feed')!;
     expect(f.name).toBe('Discovered Name');
   });

@@ -16,9 +16,11 @@ The feed relay is deployed publicly (`https://ferrite-relay.paulrule1.workers.de
 ## Capabilities
 
 ### New Capabilities
+
 <!-- None. -->
 
 ### Modified Capabilities
+
 - `feed-relay`: Add security requirements (response-size cap, rate limiting, origin restriction, content-type filtering) and strengthen the existing "restricts what it will fetch" requirement to cover redirect targets and encoded/private addresses.
 
 ## Impact
@@ -26,4 +28,4 @@ The feed relay is deployed publicly (`https://ferrite-relay.paulrule1.workers.de
 - **Code**: `relay/worker.ts` (validation, redirect handling, size cap, origin check, content-type filter), `relay/wrangler.toml` (rate-limit binding and/or config for allowed origins and limits), `relay/worker.test.ts` (new cases).
 - **Config**: allowed origins, size limit, and rate-limit thresholds become relay configuration (env/vars in `wrangler.toml`).
 - **Deployment**: redeploy the relay Worker after the change; no app rebuild required (the client contract is unchanged for valid feed requests).
-- **Compatibility**: feeds that redirect to a *different* host now require that host to also be a valid http(s) public target; feeds served with a non-feed content type may be rejected — acceptable trade-off for the security gain, and surfaced to the user as a fetch error.
+- **Compatibility**: feeds that redirect to a _different_ host now require that host to also be a valid http(s) public target; feeds served with a non-feed content type may be rejected — acceptable trade-off for the security gain, and surfaced to the user as a fetch error.

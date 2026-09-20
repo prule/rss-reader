@@ -18,9 +18,11 @@ The project was scaffolded with npm (npm scripts, `package-lock.json`, npm's `al
 ## Capabilities
 
 ### New Capabilities
+
 <!-- None. This is a tooling/infrastructure change with no spec-level behavior change; `.openspec.yaml` sets skip_specs: true. -->
 
 ### Modified Capabilities
+
 <!-- None. -->
 
 ## Impact

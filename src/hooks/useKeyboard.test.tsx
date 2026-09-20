@@ -12,10 +12,7 @@ function Harness() {
 beforeEach(() => {
   useStore.setState({
     nodes: sampleTree(),
-    entries: [
-      entry('e1', 's_ars', { read: false }),
-      entry('e2', 's_pl', { read: false }),
-    ],
+    entries: [entry('e1', 's_ars', { read: false }), entry('e2', 's_pl', { read: false })],
     sel: { kind: 'all' },
     selEntry: null,
     query: '',

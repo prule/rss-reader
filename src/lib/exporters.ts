@@ -55,7 +55,7 @@ export function buildCSV(nodes: LibraryNode[], entries: Entry[]): string {
     return [
       e.id,
       feed ? feed.name : '',
-      feed ? feed.url ?? '' : '',
+      feed ? (feed.url ?? '') : '',
       folderPath(nodes, e.feedId),
       tags.join('; '),
       e.title,

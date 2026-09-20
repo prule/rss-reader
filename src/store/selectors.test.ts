@@ -21,19 +21,12 @@ describe('selectors', () => {
   });
 
   it('ancestors are root-first and exclude self', () => {
-    expect(ancestors(nodes, 's_pl').map((n) => n.name)).toEqual([
-      'Technology',
-      'Infrastructure',
-    ]);
+    expect(ancestors(nodes, 's_pl').map((n) => n.name)).toEqual(['Technology', 'Infrastructure']);
     expect(ancestors(nodes, 's_lr')).toEqual([]);
   });
 
   it('tagsFor is the hierarchy path plus the feed name', () => {
-    expect(tagsFor(nodes, 's_pl')).toEqual([
-      'Technology',
-      'Infrastructure',
-      'Packet Loss Weekly',
-    ]);
+    expect(tagsFor(nodes, 's_pl')).toEqual(['Technology', 'Infrastructure', 'Packet Loss Weekly']);
     expect(tagsFor(nodes, 's_lr')).toEqual(['Longreads']);
   });
 
@@ -90,19 +83,16 @@ describe('selectors', () => {
     ).toEqual(['e2']);
     // two tags AND
     expect(
-      visibleEntries(nodes, entries, { kind: 'bookmarks' }, '', [
-        'Technology',
-        'Design',
-      ]),
+      visibleEntries(nodes, entries, { kind: 'bookmarks' }, '', ['Technology', 'Design']),
     ).toEqual([]);
     // keyword
     expect(
       visibleEntries(nodes, entries, { kind: 'bookmarks' }, 'mapmakers', []).map((e) => e.id),
     ).toEqual(['e3']);
     // keyword + tag combined (no match)
-    expect(
-      visibleEntries(nodes, entries, { kind: 'bookmarks' }, 'anycast', ['Design']),
-    ).toEqual([]);
+    expect(visibleEntries(nodes, entries, { kind: 'bookmarks' }, 'anycast', ['Design'])).toEqual(
+      [],
+    );
   });
 
   it('bookmarkTags lists distinct tags across bookmarks only', () => {

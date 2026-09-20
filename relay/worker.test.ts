@@ -2,9 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { discoverFeedLinks, handleRequest, validateTarget, type Env } from './worker';
 
 const relay = (target?: string, origin?: string, method = 'GET') => {
-  const url = target
-    ? `https://relay/?url=${encodeURIComponent(target)}`
-    : 'https://relay/';
+  const url = target ? `https://relay/?url=${encodeURIComponent(target)}` : 'https://relay/';
   const headers: Record<string, string> = {};
   if (origin) headers.Origin = origin;
   return new Request(url, { method, headers });
@@ -76,8 +74,12 @@ describe('handleRequest — basics', () => {
   it('relays a feed body with the content type', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response('<rss></rss>', { status: 200, headers: { 'content-type': 'application/rss+xml' } }),
+      vi.fn(
+        async () =>
+          new Response('<rss></rss>', {
+            status: 200,
+            headers: { 'content-type': 'application/rss+xml' },
+          }),
       ),
     );
     const res = await handleRequest(relay('https://example.com/feed.xml'));
@@ -87,12 +89,20 @@ describe('handleRequest — basics', () => {
   });
 
   it('reports unreachable and upstream errors distinctly', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('net'); }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new Error('net');
+      }),
+    );
     let res = await handleRequest(relay('https://example.com/feed.xml'));
     expect(res.status).toBe(502);
     expect((await res.json()).kind).toBe('unreachable');
 
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('nope', { status: 404 })));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('nope', { status: 404 })),
+    );
     res = await handleRequest(relay('https://example.com/feed.xml'));
     expect(res.status).toBe(502);
     expect((await res.json()).kind).toBe('upstream-error');
@@ -101,8 +111,8 @@ describe('handleRequest — basics', () => {
 
 describe('handleRequest — redirects', () => {
   it('does not follow a redirect to a private address', async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response('', { status: 302, headers: { location: 'https://127.0.0.1/x' } }),
+    const fetchMock = vi.fn(
+      async () => new Response('', { status: 302, headers: { location: 'https://127.0.0.1/x' } }),
     );
     vi.stubGlobal('fetch', fetchMock);
     const res = await handleRequest(relay('https://example.com/feed.xml'));
@@ -112,8 +122,9 @@ describe('handleRequest — redirects', () => {
   });
 
   it('does not follow a redirect to a plaintext http location', async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response('', { status: 302, headers: { location: 'http://example.com/feed.xml' } }),
+    const fetchMock = vi.fn(
+      async () =>
+        new Response('', { status: 302, headers: { location: 'http://example.com/feed.xml' } }),
     );
     vi.stubGlobal('fetch', fetchMock);
     const res = await handleRequest(relay('https://example.com/start'));
@@ -125,7 +136,10 @@ describe('handleRequest — redirects', () => {
   it('follows a redirect to an allowed target', async () => {
     const fetchMock = vi.fn(async (url: string) =>
       url.includes('final')
-        ? new Response('<rss>ok</rss>', { status: 200, headers: { 'content-type': 'application/xml' } })
+        ? new Response('<rss>ok</rss>', {
+            status: 200,
+            headers: { 'content-type': 'application/xml' },
+          })
         : new Response('', { status: 302, headers: { location: 'https://example.com/final' } }),
     );
     vi.stubGlobal('fetch', fetchMock);
@@ -139,7 +153,13 @@ describe('handleRequest — size cap', () => {
   it('rejects when content-length exceeds the limit', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response('<rss></rss>', { status: 200, headers: { 'content-type': 'application/xml' } })),
+      vi.fn(
+        async () =>
+          new Response('<rss></rss>', {
+            status: 200,
+            headers: { 'content-type': 'application/xml' },
+          }),
+      ),
     );
     // MAX_BYTES=5, an 11-byte body → over limit.
     const res = await handleRequest(relay('https://example.com/feed.xml'), { MAX_BYTES: '5' });
@@ -155,7 +175,10 @@ describe('handleRequest — size cap', () => {
     });
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response(stream, { status: 200, headers: { 'content-type': 'application/xml' } })),
+      vi.fn(
+        async () =>
+          new Response(stream, { status: 200, headers: { 'content-type': 'application/xml' } }),
+      ),
     );
     const res = await handleRequest(relay('https://example.com/feed.xml'), { MAX_BYTES: '5' });
     expect(res.status).toBe(413);
@@ -172,11 +195,12 @@ describe('handleRequest — size cap', () => {
     });
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response(stream, {
-          status: 200,
-          headers: { 'content-type': 'application/xml', 'content-length': '1000001' },
-        }),
+      vi.fn(
+        async () =>
+          new Response(stream, {
+            status: 200,
+            headers: { 'content-type': 'application/xml', 'content-length': '1000001' },
+          }),
       ),
     );
     const over = await handleRequest(relay('https://example.com/feed.xml'));
@@ -188,7 +212,10 @@ describe('handleRequest — content-type gate', () => {
   it('rejects a non-feed content type', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response('PNGDATA', { status: 200, headers: { 'content-type': 'image/png' } })),
+      vi.fn(
+        async () =>
+          new Response('PNGDATA', { status: 200, headers: { 'content-type': 'image/png' } }),
+      ),
     );
     const res = await handleRequest(relay('https://example.com/logo.png'));
     expect(res.status).toBe(415);
@@ -197,11 +224,12 @@ describe('handleRequest — content-type gate', () => {
   it('allows a generic content type that sniffs as a feed', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () =>
-        new Response('<?xml version="1.0"?><rss></rss>', {
-          status: 200,
-          headers: { 'content-type': 'application/octet-stream' },
-        }),
+      vi.fn(
+        async () =>
+          new Response('<?xml version="1.0"?><rss></rss>', {
+            status: 200,
+            headers: { 'content-type': 'application/octet-stream' },
+          }),
       ),
     );
     const res = await handleRequest(relay('https://example.com/feed'));
@@ -223,7 +251,13 @@ describe('handleRequest — origin allowlist', () => {
   it('serves an allowed origin and echoes it (not *)', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response('<rss></rss>', { status: 200, headers: { 'content-type': 'application/xml' } })),
+      vi.fn(
+        async () =>
+          new Response('<rss></rss>', {
+            status: 200,
+            headers: { 'content-type': 'application/xml' },
+          }),
+      ),
     );
     const res = await handleRequest(
       relay('https://example.com/feed.xml', 'https://app.example'),
@@ -245,14 +279,16 @@ describe('discoverFeedLinks', () => {
   });
 
   it('returns an empty list for a page with no feeds', () => {
-    expect(discoverFeedLinks('<html><head><title>none</title></head></html>', 'https://x.example/')).toEqual([]);
+    expect(
+      discoverFeedLinks('<html><head><title>none</title></head></html>', 'https://x.example/'),
+    ).toEqual([]);
   });
 });
 
 describe('handleRequest — discovery mode', () => {
   it('fetches the page once and returns only the discovered feeds (never the page body)', async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(PAGE, { status: 200, headers: { 'content-type': 'text/html' } }),
+    const fetchMock = vi.fn(
+      async () => new Response(PAGE, { status: 200, headers: { 'content-type': 'text/html' } }),
     );
     vi.stubGlobal('fetch', fetchMock);
     const res = await handleRequest(discover('https://techcrunch.com'));
@@ -260,7 +296,10 @@ describe('handleRequest — discovery mode', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1); // one upstream fetch, no candidate probing
     const body = await res.json();
     expect(body.feeds).toHaveLength(2);
-    expect(body.feeds[0]).toMatchObject({ url: 'https://techcrunch.com/category/ai/feed/', type: 'rss' });
+    expect(body.feeds[0]).toMatchObject({
+      url: 'https://techcrunch.com/category/ai/feed/',
+      type: 'rss',
+    });
     expect(JSON.stringify(body)).not.toContain('hello'); // page body did not leak
   });
 
@@ -268,17 +307,23 @@ describe('handleRequest — discovery mode', () => {
     // The feed content gate still rejects a genuinely non-feed response...
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response('PNGDATA', { status: 200, headers: { 'content-type': 'image/png' } })),
+      vi.fn(
+        async () =>
+          new Response('PNGDATA', { status: 200, headers: { 'content-type': 'image/png' } }),
+      ),
     );
     expect((await handleRequest(relay('https://example.com/logo.png'))).status).toBe(415);
 
     // ...but discovery accepts an HTML page (which is not feed-like) and returns a list.
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response('<html><head></head><body>x</body></html>', {
-        status: 200,
-        headers: { 'content-type': 'text/html' },
-      })),
+      vi.fn(
+        async () =>
+          new Response('<html><head></head><body>x</body></html>', {
+            status: 200,
+            headers: { 'content-type': 'text/html' },
+          }),
+      ),
     );
     const asDiscover = await handleRequest(discover('https://example.com/'));
     expect(asDiscover.status).toBe(200);
@@ -295,8 +340,9 @@ describe('handleRequest — discovery mode', () => {
   });
 
   it('does not follow a discovery redirect to a private address', async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response('', { status: 302, headers: { location: 'https://169.254.169.254/' } }),
+    const fetchMock = vi.fn(
+      async () =>
+        new Response('', { status: 302, headers: { location: 'https://169.254.169.254/' } }),
     );
     vi.stubGlobal('fetch', fetchMock);
     const res = await handleRequest(discover('https://example.com/'));
@@ -316,7 +362,13 @@ describe('handleRequest — rate limiting', () => {
   it('proceeds when the rate limiter allows the request', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response('<rss></rss>', { status: 200, headers: { 'content-type': 'application/xml' } })),
+      vi.fn(
+        async () =>
+          new Response('<rss></rss>', {
+            status: 200,
+            headers: { 'content-type': 'application/xml' },
+          }),
+      ),
     );
     const env: Env = { RATE_LIMITER: { limit: async () => ({ success: true }) } };
     const res = await handleRequest(relay('https://example.com/feed.xml'), env);

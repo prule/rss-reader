@@ -121,7 +121,10 @@ export async function addFromInput(input: SubscribeInput): Promise<AddResult> {
   try {
     const parsed = parseFeed(await fetchFeedText(url));
     const title = name || parsed.title || hostFrom(url);
-    return { kind: 'subscribed', feedId: commitSubscription(title, url, input.parent, parsed.items, false) };
+    return {
+      kind: 'subscribed',
+      feedId: commitSubscription(title, url, input.parent, parsed.items, false),
+    };
   } catch {
     // Not a feed (or the relay refused the page). Fall through to discovery.
   }

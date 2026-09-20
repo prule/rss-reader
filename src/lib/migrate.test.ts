@@ -81,7 +81,15 @@ describe('migrate', () => {
     const out = migrate({
       version: 1,
       nodes: [
-        { id: 's1', type: 'feed', name: 'A', parentId: null, collapsed: false, url: 'u', fetchedAt: 123 },
+        {
+          id: 's1',
+          type: 'feed',
+          name: 'A',
+          parentId: null,
+          collapsed: false,
+          url: 'u',
+          fetchedAt: 123,
+        },
         { id: 's2', type: 'feed', name: 'B', parentId: null, collapsed: false, url: 'u2' },
       ],
       entries: [],

@@ -239,7 +239,9 @@ export const useStore = create<AppState>((set, get) => ({
   patchEntry: (id, patch) =>
     set((s) => ({ entries: s.entries.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
   toggleMark: (id) =>
-    set((s) => ({ entries: s.entries.map((e) => (e.id === id ? { ...e, marked: !e.marked } : e)) })),
+    set((s) => ({
+      entries: s.entries.map((e) => (e.id === id ? { ...e, marked: !e.marked } : e)),
+    })),
   toggleRead: (id) =>
     set((s) => ({ entries: s.entries.map((e) => (e.id === id ? { ...e, read: !e.read } : e)) })),
   markVisibleRead: () =>
@@ -251,7 +253,13 @@ export const useStore = create<AppState>((set, get) => ({
     }),
 
   openAddFeed: () =>
-    set({ showAddFeed: true, addPhase: 'input', discovering: false, candidates: [], selectedUrls: [] }),
+    set({
+      showAddFeed: true,
+      addPhase: 'input',
+      discovering: false,
+      candidates: [],
+      selectedUrls: [],
+    }),
   closeAddFeed: () =>
     set({
       showAddFeed: false,
@@ -271,7 +279,8 @@ export const useStore = create<AppState>((set, get) => ({
       candidates,
       selectedUrls: candidates.map((c) => c.url), // default: all selected
     }),
-  showNoneFound: () => set({ addPhase: 'none', discovering: false, candidates: [], selectedUrls: [] }),
+  showNoneFound: () =>
+    set({ addPhase: 'none', discovering: false, candidates: [], selectedUrls: [] }),
   toggleCandidate: (url) =>
     set((s) => ({
       selectedUrls: s.selectedUrls.includes(url)

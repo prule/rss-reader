@@ -13,13 +13,14 @@ We have a complete, high-fidelity design for **Ferrite** (`RSS reader design/RSS
 - Keep JSON and CSV export, and JSON/CSV import for backup/restore.
 - Add the **PWA shell**: reuse the existing `manifest.json`, add a service worker for offline app-shell caching and installability, and cache the last-fetched entries so the reader works offline.
 
-**Offline behavior**: Once loaded, the app shell and all stored data (feeds, folders, entries, read/bookmark state) are available offline from localStorage; only fetching *new* feed content requires connectivity (and reaches the relay). Failed fetches degrade gracefully and surface via the existing toast/status line.
+**Offline behavior**: Once loaded, the app shell and all stored data (feeds, folders, entries, read/bookmark state) are available offline from localStorage; only fetching _new_ feed content requires connectivity (and reaches the relay). Failed fetches degrade gracefully and surface via the existing toast/status line.
 
 **Data & migration**: Persistence stays in localStorage under `ferrite.library.v1` with the existing `nodes` / `entries` shape. Real fetching extends entries with fields the mock faked (e.g. `link`, absolute `publishedAt`, `guid` for dedup); a versioned payload and a load-time migration will upgrade any pre-existing mock data rather than discard it.
 
 ## Capabilities
 
 ### New Capabilities
+
 - `feed-subscription`: Adding feeds; fetching and parsing RSS/Atom through the relay; normalizing, deduplicating, and refreshing entries; scheduled polling.
 - `feed-relay`: The stateless CORS-relay worker contract — request shape, allowed responses, and error semantics.
 - `navigation-tree`: The folder/feed hierarchy — drag-and-drop reparent/reorder, collapse, rename, and delete semantics.
@@ -29,6 +30,7 @@ We have a complete, high-fidelity design for **Ferrite** (`RSS reader design/RSS
 - `pwa-shell`: Manifest, service worker, installability, and offline behavior.
 
 ### Modified Capabilities
+
 <!-- None — this is a greenfield build; there are no existing specs. -->
 
 ## Impact

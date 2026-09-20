@@ -61,7 +61,10 @@ export function fromCSV(text: string): LibraryData {
   const folderIdFor = (path: string): string | null => {
     if (!path) return null;
     let parent: string | null = null;
-    for (const name of path.split('/').map((p) => p.trim()).filter(Boolean)) {
+    for (const name of path
+      .split('/')
+      .map((p) => p.trim())
+      .filter(Boolean)) {
       let folder = nodes.find(
         (n) => n.type === 'folder' && n.name === name && n.parentId === parent,
       );
@@ -83,9 +86,7 @@ export function fromCSV(text: string): LibraryData {
     const feedName = get('feed') || 'Imported';
     const feedUrl = get('feed_url');
     const parent = folderIdFor(get('folder_path'));
-    let feed = nodes.find(
-      (n) => n.type === 'feed' && n.name === feedName && n.parentId === parent,
-    );
+    let feed = nodes.find((n) => n.type === 'feed' && n.name === feedName && n.parentId === parent);
     if (!feed) {
       feed = {
         id: makeId('is'),

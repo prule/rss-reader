@@ -5,11 +5,13 @@ See proposal.md — Why. Today `refreshAll()` in `src/lib/feeds.ts` fetches ever
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Skip fetching feeds fetched within the last 24h on automatic refresh; keep manual refresh forcing all.
 - Persist last-successful-fetch time per feed; never advance it on failure.
 - Migrate existing feeds without data loss (treated as never-fetched → stale).
 
 **Non-Goals:**
+
 - Configurable threshold or per-feed schedules (fixed 24h for now).
 - Background/Service-Worker refresh when the app is closed (out of scope; unchanged).
 - Changing the 15-minute poll cadence or the relay.

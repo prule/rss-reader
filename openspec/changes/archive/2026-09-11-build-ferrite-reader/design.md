@@ -7,12 +7,14 @@ Constraints that shape the approach: browser-only persistence (localStorage), no
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Port the mock to idiomatic TS/React (function components + hooks) without regressing any proven behavior, keeping the same localStorage key and a compatible payload.
 - Introduce a clean seam between UI and data so feed I/O, persistence, and parsing are testable in isolation.
 - Make live fetching work through the smallest possible relay, with a local-dev path that needs no deployed worker.
 - Ship an installable, offline-capable PWA.
 
 **Non-Goals:**
+
 - Feed discovery/autodiscovery from a site URL (user pastes the feed URL).
 - Full-text article extraction beyond what the feed provides.
 - Sync across devices, auth, or any multi-user concern.
@@ -71,7 +73,7 @@ Entry bodies are sanitized (e.g. DOMPurify) at normalize time and again defensiv
 
 ### D6: PWA via a Vite PWA plugin (Workbox)
 
-Use a Vite PWA plugin to generate the service worker and precache the app shell; reuse the existing `manifest.json` (adjusting `start_url`/icons for the built app). Runtime caching applies to the app shell only — feed content is *not* cached by the service worker because the library (including fetched entries) already persists in localStorage and is the source of truth offline.
+Use a Vite PWA plugin to generate the service worker and precache the app shell; reuse the existing `manifest.json` (adjusting `start_url`/icons for the built app). Runtime caching applies to the app shell only — feed content is _not_ cached by the service worker because the library (including fetched entries) already persists in localStorage and is the source of truth offline.
 
 - **Why:** meets pwa-shell spec with minimal hand-written SW code; avoids a second, divergent copy of feed data in the Cache API.
 

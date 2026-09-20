@@ -7,7 +7,12 @@ import { entry, sampleTree } from '../test/fixtures';
 const library = () => ({
   nodes: sampleTree(),
   entries: [
-    entry('e1', 's_pl', { title: 'Anycast', read: true, marked: true, publishedAt: 1_700_000_000_000 }),
+    entry('e1', 's_pl', {
+      title: 'Anycast',
+      read: true,
+      marked: true,
+      publishedAt: 1_700_000_000_000,
+    }),
     entry('e2', 's_lr', { title: 'Map, maker "quote"', read: false, marked: false }),
   ],
 });

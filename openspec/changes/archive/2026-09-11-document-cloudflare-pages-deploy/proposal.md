@@ -5,7 +5,7 @@ The project records its tech/stack and constraints in `openspec/config.yaml` (de
 ## What Changes
 
 - Add to `openspec/config.yaml` context that the app (the built `dist/` from Vite) is deployed to **Cloudflare Pages**.
-- Note the split hosting model: Cloudflare Pages serves the static PWA; the feed relay remains a standalone Cloudflare Worker deployed separately (`relay/`, via `wrangler deploy`). Record the assumption that the relay is *not* folded into Pages Functions for now.
+- Note the split hosting model: Cloudflare Pages serves the static PWA; the feed relay remains a standalone Cloudflare Worker deployed separately (`relay/`, via `wrangler deploy`). Record the assumption that the relay is _not_ folded into Pages Functions for now.
 - Note that `VITE_RELAY_URL` is set at build time to the deployed relay Worker's origin so the Pages-hosted app reaches it.
 
 **No code, build output, or runtime behavior changes** — this change only records the deployment target in the OpenSpec project context. (Optionally, the README's deploy section may be aligned to name Cloudflare Pages; the config update is the required part.)
@@ -13,9 +13,11 @@ The project records its tech/stack and constraints in `openspec/config.yaml` (de
 ## Capabilities
 
 ### New Capabilities
+
 <!-- None. Documentation/config-only change with no spec-level behavior change; `.openspec.yaml` sets skip_specs: true. -->
 
 ### Modified Capabilities
+
 <!-- None. -->
 
 ## Impact

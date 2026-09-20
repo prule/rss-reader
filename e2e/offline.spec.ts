@@ -4,7 +4,16 @@ import { describe, it } from './screenplay/serenity';
 
 const SEED = {
   version: 1,
-  nodes: [{ id: 's1', type: 'feed', name: 'Longreads', parentId: null, collapsed: false, url: 'https://x/feed' }],
+  nodes: [
+    {
+      id: 's1',
+      type: 'feed',
+      name: 'Longreads',
+      parentId: null,
+      collapsed: false,
+      url: 'https://x/feed',
+    },
+  ],
   entries: [
     {
       id: 'e1',

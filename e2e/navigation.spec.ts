@@ -3,9 +3,9 @@ import { By, Click, Enter, Navigate, PageElement, Press } from '@serenity-js/web
 import { Key } from '@serenity-js/web';
 import { describe, it } from './screenplay/serenity';
 
-const newFolderButton = PageElement.located(By.cssContainingText('button', 'New Folder')).describedAs(
-  'the New Folder button',
-);
+const newFolderButton = PageElement.located(
+  By.cssContainingText('button', 'New Folder'),
+).describedAs('the New Folder button');
 const renameInput = PageElement.located(By.css('input[aria-label="Rename"]')).describedAs(
   'the inline rename field',
 );

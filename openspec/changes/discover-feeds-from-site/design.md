@@ -5,11 +5,13 @@ See proposal.md — Why. The app's only server-side piece is the stateless feed 
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Discover feeds from a page URL and let the user pick which to add.
 - Keep every relay protection that matters (SSRF guard, size cap, rate limit, statelessness) intact; relax only the feed-content gate, and only inside a discovery mode whose output is a tightly constrained list.
 - Reuse the existing subscribe/parse/dedupe path unchanged for the actual adds.
 
 **Non-Goals:**
+
 - Server-side path-guessing or fetching candidate feeds to enrich titles (would break the one-fetch-per-request rule). Any path-guessing fallback runs on the client through the normal relay so the rate limiter counts each probe.
 - Per-feed folder targeting for a batch — one target folder per add action.
 - Any change to the `nodes`/`entries` data shape or a migration.
@@ -20,7 +22,7 @@ See proposal.md — Why. The app's only server-side piece is the stateless feed 
 
 The relay gains a discovery mode (e.g. `?discover=<page-url>` or a `/discover` path) that fetches the page and returns `[{ url, type: 'rss'|'atom'|'json', title }]`. Rationale: the raw HTML never reaches the browser, so the relay stays "not an open proxy" in spirit — the output channel is a short list of https feed URLs + an enum + a truncated title, which cannot launder arbitrary page bytes. All existing guards run on the page fetch via the same `validateTarget`.
 
-*Alternative — client-side discovery:* relay passes raw HTML through, client parses `<link>` tags with `DOMParser`. Rejected: it turns the relay into a general HTML proxy (much wider "open proxy" surface) for no real gain, since discovery logic is small.
+_Alternative — client-side discovery:_ relay passes raw HTML through, client parses `<link>` tags with `DOMParser`. Rejected: it turns the relay into a general HTML proxy (much wider "open proxy" surface) for no real gain, since discovery logic is small.
 
 ### Parse `<link rel="alternate">` from the capped body with a pure string scanner
 

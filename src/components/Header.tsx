@@ -5,13 +5,7 @@ import { ancestors, node, feedCount } from '../store/selectors';
 import { refreshAll } from '../lib/feeds';
 import { buildCSV, buildJSON, download, stamp } from '../lib/exporters';
 import { fromCSV, fromJSON } from '../lib/importers';
-import {
-  ICON_STROKE,
-  IconDownload,
-  IconNewFolder,
-  IconPlus,
-  IconUpload,
-} from './icons';
+import { ICON_STROKE, IconDownload, IconNewFolder, IconPlus, IconUpload } from './icons';
 
 function useCrumb(): string {
   const s = useStore();
@@ -33,7 +27,11 @@ export function Header() {
   const hasFeeds = feedCount(s.nodes) > 0;
 
   const exportJSON = () => {
-    download(`rss-reader-${stamp()}.json`, 'application/json', buildJSON({ nodes: s.nodes, entries: s.entries }));
+    download(
+      `rss-reader-${stamp()}.json`,
+      'application/json',
+      buildJSON({ nodes: s.nodes, entries: s.entries }),
+    );
     s.say('Exported JSON');
   };
   const exportCSV = () => {

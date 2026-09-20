@@ -169,10 +169,18 @@ export function AddFeedDialog() {
               {folderSelect}
             </div>
             <div className="dialog-actions">
-              <button className="btn btn-secondary" onClick={s.closeAddFeed} disabled={s.discovering}>
+              <button
+                className="btn btn-secondary"
+                onClick={s.closeAddFeed}
+                disabled={s.discovering}
+              >
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={() => void submit()} disabled={s.discovering}>
+              <button
+                className="btn btn-primary"
+                onClick={() => void submit()}
+                disabled={s.discovering}
+              >
                 {s.discovering ? 'Checking…' : 'Subscribe'}
               </button>
             </div>

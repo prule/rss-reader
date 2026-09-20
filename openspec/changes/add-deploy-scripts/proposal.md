@@ -15,9 +15,11 @@ Deploying the app currently means remembering a sequence of ad-hoc commands (bui
 ## Capabilities
 
 ### New Capabilities
+
 <!-- None. Tooling/DX change with no spec-level behavior change; `.openspec.yaml` sets skip_specs: true. -->
 
 ### Modified Capabilities
+
 <!-- None. -->
 
 ## Impact

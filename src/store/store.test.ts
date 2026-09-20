@@ -6,11 +6,7 @@ import { node } from './selectors';
 const reset = () =>
   useStore.setState({
     nodes: sampleTree(),
-    entries: [
-      entry('e1', 's_ars'),
-      entry('e2', 's_pl'),
-      entry('e3', 's_lr'),
-    ],
+    entries: [entry('e1', 's_ars'), entry('e2', 's_pl'), entry('e3', 's_lr')],
     sel: { kind: 'all' },
     selEntry: null,
     activeTags: [],

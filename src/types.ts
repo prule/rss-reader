@@ -38,10 +38,7 @@ export interface Entry {
 
 /** What the entry list is currently showing. */
 export type Selection =
-  | { kind: 'all' }
-  | { kind: 'unread' }
-  | { kind: 'bookmarks' }
-  | { kind: 'node'; id: string };
+  { kind: 'all' } | { kind: 'unread' } | { kind: 'bookmarks' } | { kind: 'node'; id: string };
 
 /** The add-feed dialog form. */
 export interface FeedForm {

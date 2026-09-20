@@ -17,9 +17,11 @@ The app currently re-fetches every feed on load and every 15 minutes while open,
 ## Capabilities
 
 ### New Capabilities
+
 <!-- None. -->
 
 ### Modified Capabilities
+
 - `feed-subscription`: Change the "Refresh feeds" requirement so automatic refresh only fetches feeds stale beyond 24 hours, while manual refresh forces all; record last-successful-fetch time per feed and do not advance it on failure.
 
 ## Impact
@@ -29,4 +31,4 @@ The app currently re-fetches every feed on load and every 15 minutes while open,
 - **Migration**: handled in `src/lib/migrate.ts` — absent `fetchedAt` means "never fetched".
 - **Tests**: `src/lib/feeds.test.ts` (auto skips fresh, fetches stale, manual forces, failure leaves stale), migration test for the new field.
 - **No relay change and no app-contract change.** The 15-minute poll cadence stays; it just becomes a staleness check that fetches only stale feeds.
-- **Assumptions**: staleness threshold is exactly 24h (86,400,000 ms) since last *successful* fetch; the poll interval remains 15 minutes (each tick re-evaluates staleness).
+- **Assumptions**: staleness threshold is exactly 24h (86,400,000 ms) since last _successful_ fetch; the poll interval remains 15 minutes (each tick re-evaluates staleness).

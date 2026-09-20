@@ -5,15 +5,17 @@ See proposal.md — Why. The relay is a single stateless Cloudflare Worker (`rel
 ## Goals / Non-Goals
 
 **Goals:**
+
 - Close the redirect SSRF gap and the encoded-address gap in target validation.
 - Bound resource use (response size, request rate) so abuse can't run up cost.
 - Reduce the relay's usefulness as a general/anonymizing proxy (content-type gate + origin allowlist).
 - Keep all limits as `wrangler.toml` configuration, and keep the Worker stateless.
 
 **Non-Goals:**
+
 - Authenticating users or making the relay private (a token shipped in the client bundle isn't a real secret; out of scope).
 - Per-user quotas or usage accounting (would require state; the relay stays stateless).
-- Guaranteeing non-browser clients (curl) can't call it — the measures limit *damage*, not identity.
+- Guaranteeing non-browser clients (curl) can't call it — the measures limit _damage_, not identity.
 
 ## Decisions
 
@@ -35,7 +37,7 @@ Read the upstream body via its stream reader and accumulate into a capped buffer
 
 Add a Cloudflare Workers rate-limiting binding in `wrangler.toml`, keyed by `CF-Connecting-IP`, with a configured limit (e.g. 60 requests/min). Over the limit → `429`.
 
-- **Why:** native, stateless from our code's perspective, no extra infra, and visible in config. 
+- **Why:** native, stateless from our code's perspective, no extra infra, and visible in config.
 - **Alternatives:** a WAF rate rule (no code, but less portable/visible), or a Durable Object counter (adds state and cost). Rejected for this scope. Trade-off: IP keying can group users behind shared NAT — acceptable at a per-minute budget sized for a feed reader.
 
 ### D4: Origin allowlist with echoed CORS origin
