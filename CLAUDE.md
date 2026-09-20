@@ -13,9 +13,20 @@ pnpm test         # Vitest, single run
 pnpm test:watch   # Vitest, watch mode
 pnpm test:e2e     # Playwright
 pnpm relay:dev    # wrangler dev relay/worker.ts
+pnpm format       # Prettier, write
+pnpm format:check # Prettier, check only (what CI runs)
 ```
 
-pnpm is pinned in `package.json` (`packageManager`). Always pnpm — never npm or yarn.
+pnpm is pinned in `package.json` (`packageManager`), Node in `.node-version`.
+Always pnpm — never npm or yarn.
+
+Formatting is automatic: a pre-commit hook formats staged files, and CI runs
+`format:check`. Never hand-format. `core.hooksPath` is local git config and is
+**not** carried by a clone — run this once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 ## Conventions
 
@@ -49,8 +60,7 @@ Deliberate, and recorded in `openspec/config.yaml`:
 - E2E uses Serenity/JS rather than a hand-rolled Screenplay implementation
   (`patterns/screenplay.md`).
 
-Unrecorded — resolve or write an ADR:
+Still open:
 
-- No ESLint or Prettier config, and no pre-commit formatting hook
-  (`technologies/formatting.md`).
-- No `.node-version`, so the Node version is unpinned (`technologies/typescript.md`).
+- No ESLint config (`technologies/typescript.md` expects ESLint alongside
+  Prettier). Lint is for correctness; formatting is already handled.
