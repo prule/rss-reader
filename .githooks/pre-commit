@@ -1,5 +1,5 @@
 #!/bin/sh
-# Format staged code before committing.
+# Format staged files before committing.
 # This hook is convenience; CI is enforcement (it can be skipped with --no-verify).
 set -e
 
@@ -11,7 +11,8 @@ if ! command -v pnpm >/dev/null 2>&1; then
   exit 0
 fi
 
-pnpm run format
+# Only the staged files: fast, quiet, and .prettierignore still applies.
+echo "$staged" | xargs pnpm exec prettier --write --ignore-unknown --log-level warn --
 
 # Re-stage only what was already staged; never `git add .`
 echo "$staged" | xargs git add --
