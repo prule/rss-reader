@@ -15,6 +15,8 @@ pnpm test:e2e     # Playwright
 pnpm relay:dev    # wrangler dev relay/worker.ts
 pnpm format       # Prettier, write
 pnpm format:check # Prettier, check only (what CI runs)
+pnpm lint         # ESLint
+pnpm lint:fix     # ESLint, autofix
 ```
 
 pnpm is pinned in `package.json` (`packageManager`), Node in `.node-version`.
@@ -60,7 +62,4 @@ Deliberate, and recorded in `openspec/config.yaml`:
 - E2E uses Serenity/JS rather than a hand-rolled Screenplay implementation
   (`patterns/screenplay.md`).
 
-Still open:
-
-- No ESLint config (`technologies/typescript.md` expects ESLint alongside
-  Prettier). Lint is for correctness; formatting is already handled.
+None outstanding. CI enforces formatting, lint, types and unit tests.

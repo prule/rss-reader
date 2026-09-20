@@ -103,8 +103,8 @@ export function validateTarget(
   if (url.protocol !== 'https:') {
     return { ok: false, reason: 'Only https is allowed' };
   }
-  let host = url.hostname.toLowerCase();
-  // Strip IPv6 brackets. We reject all IPv6 literals: feeds use hostnames or
+  const host = url.hostname.toLowerCase();
+  // Reject all IPv6 literals: feeds use hostnames or
   // IPv4, and this blanket-blocks ::1, fc00::/7 (ULA), fe80::/10, and
   // ::ffff:<private-v4> mapped forms without partial-parsing IPv6.
   if (host.startsWith('[') || host.includes(':')) {
