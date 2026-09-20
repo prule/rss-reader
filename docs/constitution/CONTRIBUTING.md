@@ -2,6 +2,12 @@
 
 This repo *is* the engineering constitution — documentation only, no code to build or test.
 
+> **Why this file is not `CLAUDE.md`.** This repo gets vendored into projects at
+> `docs/constitution/`. A `CLAUDE.md` here would land inside those projects as a
+> nested context file and be auto-loaded — telling an agent how to *author*
+> constitution files, in the one place the rule is that the vendored copy must
+> never be edited. Keep authoring guidance in this file. Do not rename it back.
+
 ## Before editing
 
 Read [README.md](README.md) for the three tiers and how they differ in authority.
