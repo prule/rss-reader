@@ -3,6 +3,12 @@ schema: spec-driven
 # Project context (optional)
 # This is shown to AI when creating artifacts.
 context: |
+  Conventions: follow `docs/constitution/` — principles, patterns, technologies,
+  documentation. Read its four index READMEs before creating artifacts. This
+  block adds only what is specific to this product.
+  (Restated because it is critical and easily got wrong: pnpm for everything —
+  install, scripts, the relay worker. Never npm or yarn.)
+
   Product: RSS Reader — a local-first RSS reader delivered as an installable PWA.
   Everything (feeds, folder hierarchy, entries, read/bookmark state) is stored
   on the device in localStorage under the key `rss-reader-pwa.library.v1`. There is no
@@ -28,37 +34,27 @@ context: |
   - nodes: { id, type: 'folder' | 'feed', name, parentId (null = root), collapsed, url? }
   - entries: { id, feedId, title, author, ago, snippet, body[], read, marked }
 
-  Tech/stack:
-  - TypeScript + React, built with Vite. Single-page app.
-  - pnpm is the package manager for everything (install, scripts, the relay
-    worker) — never npm or yarn. It is pinned via `packageManager` in
-    package.json; the lockfile is `pnpm-lock.yaml`. Native build scripts
-    (esbuild, workerd, sharp) are approved via `allowBuilds` in
-    `pnpm-workspace.yaml`. Use `pnpm <script>` (e.g. `pnpm dev`, `pnpm test`,
-    `pnpm run test:e2e`, `pnpm run relay:dev`, `pnpm build`).
+  Deliberate exceptions to the constitution defaults:
+  - Persistence is browser localStorage only, not Dexie/IndexedDB
+    (`technologies/local-first.md`). No user data on any server, no account.
+  - One server-side piece: a minimal, stateless Cloudflare Worker feed relay
+    (`relay/`) that fetches feed XML to work around browser CORS. It stores
+    nothing and holds no user data — a scoped exception to "no backend".
+  - E2E uses Serenity/JS as the Screenplay implementation
+    (`patterns/screenplay.md` suggests starting hand-rolled).
+
+  Project specifics:
+  - Native build scripts (esbuild, workerd, sharp) are approved via `allowBuilds`
+    in `pnpm-workspace.yaml`.
   - The reference design in `RSS reader design/` is a React component (class
     extending DCLogic) rendered via a design-canvas runtime — treat it as the
     visual and behavioral spec, and port it to idiomatic TS/React (function
     components + hooks) rather than reproducing the DCLogic base class.
-  - Persistence is browser localStorage only; there is no user data on any
-    server and no account.
-  - The one server-side piece is a minimal, stateless Cloudflare Worker feed
-    relay (`relay/`) that fetches feed XML to work around browser CORS. It
-    stores nothing and holds no user data — a deliberate, minimal exception to
-    "no backend", scoped strictly to fetching. In dev the Vite server proxies
-    `/relay` to a local `wrangler dev`; in prod the client points at the
-    deployed Worker via `VITE_RELAY_URL`.
-  - Deployment: the built static app (Vite `dist/`) is deployed to
-    **Cloudflare Pages**. The feed relay stays a separate standalone Cloudflare
-    Worker (`relay/`, `wrangler deploy`) — it is not folded into Pages
-    Functions. `VITE_RELAY_URL` is set at build time to the deployed relay
-    Worker's origin so the Pages-hosted app can reach it.
-
-  Testing:
-  - Unit / component tests with Vitest.
-  - End-to-end / acceptance tests with Playwright, driven through the
-    Screenplay Pattern and reported with Serenity/JS (actors, abilities,
-    tasks, questions — not raw page-object calls).
+  - Deployment: the built static app (Vite `dist/`) goes to Cloudflare Pages. The
+    relay stays a separate standalone Worker (`relay/`, `wrangler deploy`) — not
+    folded into Pages Functions. `VITE_RELAY_URL` is set at build time to the
+    deployed relay's origin. In dev, Vite proxies `/relay` to a local
+    `wrangler dev`.
 
   Design system: "Industry" (in `RSS reader design/_ds/.../styles.css`).
   - Steel-blue accent (#5980a6) on a light technical ground (#f2f2f3),
@@ -80,7 +76,8 @@ rules:
   tasks:
     - Include a task to verify export/import round-trips after data-model changes.
     - Cover behavior with Vitest (units/components) and, for user-facing flows,
-      Playwright acceptance tests written in the Screenplay Pattern (Serenity/JS).
+      Playwright acceptance tests in the Screenplay Pattern (Serenity/JS) — see
+      `docs/constitution/patterns/screenplay.md`.
 
 # Per-operation guidance (optional)
 operations:

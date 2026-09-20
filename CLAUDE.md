@@ -37,11 +37,20 @@ it here.** Change it upstream and pull.
 `openspec/` holds the specs and change proposals. Behaviour is specified before
 it is implemented — see `docs/constitution/documentation/specs.md`.
 
-## Known deviations from the constitution
+## Deviations from the constitution
 
-Unrecorded — resolve or write an ADR before building on them:
+Deliberate, and recorded in `openspec/config.yaml`:
 
 - Storage is `localStorage`, not Dexie/IndexedDB (`technologies/local-first.md`).
+  No user data on a server, by design. No ADR yet — write one if the ~5MB
+  synchronous, string-only ceiling becomes a real constraint.
+- The `relay/` Worker is a scoped exception to "no backend": stateless, fetches
+  feed XML around CORS, stores nothing.
+- E2E uses Serenity/JS rather than a hand-rolled Screenplay implementation
+  (`patterns/screenplay.md`).
+
+Unrecorded — resolve or write an ADR:
+
 - No ESLint or Prettier config, and no pre-commit formatting hook
   (`technologies/formatting.md`).
 - No `.node-version`, so the Node version is unpinned (`technologies/typescript.md`).
