@@ -1,0 +1,5 @@
+# Bulk reformatting commits — skip with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Apply Prettier to the codebase
+b3405e229f7eb2146012db6192ca131b7dce7615
