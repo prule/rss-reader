@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "RSS Reader — a local-first RSS reader PWA. Feeds, folders and bookmarks stored on this device.",
+  "description": "RSS Reader \u2014 a local-first RSS reader PWA. Feeds, folders and bookmarks stored on this device.",
   "packageManager": "pnpm@11.18.0",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "relay:dev": "wrangler dev relay/worker.ts",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "dompurify": "^3.2.4",
@@ -40,6 +42,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/ui": "^3.2.7",
     "jsdom": "^25.0.1",
+    "prettier": "^3.9.8",
     "typescript": "^5.7.2",
     "vite": "^6.0.7",
     "vite-plugin-pwa": "^0.21.1",

@@ -1,0 +1,15 @@
+# Vendored — never reformat (see CLAUDE.md)
+docs/constitution/
+
+# Build output
+dist/
+dev-dist/
+test-results/
+playwright-report/
+node_modules/
+
+# Reference design, kept as delivered
+RSS reader design/
+
+# Generated
+pnpm-lock.yaml
