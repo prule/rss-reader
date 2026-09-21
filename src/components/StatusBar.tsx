@@ -1,10 +1,12 @@
 import { useStore } from '../store/store';
 import { feedCount } from '../store/selectors';
+import { useCounts, useNodes } from '../hooks/useLibrary';
 
 export function StatusBar() {
   const s = useStore();
-  const unread = s.entries.filter((e) => !e.read).length;
-  const feeds = feedCount(s.nodes);
+  const counts = useCounts();
+  const unread = counts?.unread ?? 0;
+  const feeds = feedCount(useNodes() ?? []);
   const status = s.refreshing
     ? 'Refreshing…'
     : `${unread} unread · ${feeds} feeds · saved to this device`;

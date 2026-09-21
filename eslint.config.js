@@ -31,6 +31,35 @@ export default tseslint.config(
     extends: [reactHooks.configs.flat['recommended-latest']],
     rules: {
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // The library lives in IndexedDB (src/lib/db). localStorage is capped at
+      // ~5MB and rewrites the whole payload per change — the ceiling this app
+      // moved off. Only the legacy-rescue module may read the old key.
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'localStorage',
+          message: 'Persist through src/lib/db/repository.ts — localStorage is not the store.',
+        },
+      ],
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'window',
+          property: 'localStorage',
+          message: 'Persist through src/lib/db/repository.ts — localStorage is not the store.',
+        },
+      ],
+    },
+  },
+
+  // The one module allowed to touch the retired localStorage key, so a library
+  // saved by an older build can still be rescued to a file. See
+  // openspec/specs/library-persistence — "Rescue of a pre-database library".
+  {
+    files: ['src/lib/rescue.ts', 'src/lib/rescue.test.ts', 'src/App.smoke.test.tsx'],
+    rules: {
+      'no-restricted-globals': 'off',
+      'no-restricted-properties': 'off',
     },
   },
 

@@ -1,9 +1,9 @@
 import { Ensure, equals, isPresent } from '@serenity-js/assertions';
-import { By, Click, ExecuteScript, Navigate, PageElement, Text } from '@serenity-js/web';
+import { By, Click, Navigate, PageElement, Text } from '@serenity-js/web';
 import { describe, it } from './screenplay/serenity';
+import { SeedLibrary } from './screenplay/library';
 
 const SEED = {
-  version: 1,
   nodes: [
     { id: 's1', type: 'feed', name: 'Longreads', parentId: null, collapsed: false, url: 'u' },
   ],
@@ -33,10 +33,10 @@ const markAllRead = PageElement.located(
 describe('Reading entries', () => {
   it('opens an entry into the reading pane and can mark all read', async ({ actor }) => {
     await actor.attemptsTo(
+      // The first visit lets the app create its database; seeding then writes
+      // into the stores it made, and the reload reads them back.
       Navigate.to('/'),
-      ExecuteScript.sync(
-        `window.localStorage.setItem('rss-reader-pwa.library.v1', arguments[0]);`,
-      ).withArguments(JSON.stringify(SEED)),
+      SeedLibrary.with(SEED),
       Navigate.reloadPage(),
       Click.on(entryRow),
       Ensure.that(Text.of(articleHeading), equals('The mapmakers')),

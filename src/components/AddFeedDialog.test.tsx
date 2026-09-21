@@ -10,14 +10,16 @@ vi.mock('../lib/feeds', async () => {
 import { AddFeedDialog } from './AddFeedDialog';
 import { addFromInput, addSelectedFeeds } from '../lib/feeds';
 import { useStore } from '../store/store';
+import { resetLibrary, seedLibrary, storedNodes } from '../test/db';
 
 const mockAdd = vi.mocked(addFromInput);
 const mockAddSelected = vi.mocked(addSelectedFeeds);
 
-beforeEach(() => {
+beforeEach(async () => {
   mockAdd.mockReset();
   mockAddSelected.mockReset();
-  useStore.setState({ nodes: [], entries: [], toast: '' });
+  await resetLibrary();
+  await seedLibrary({ nodes: [], entries: [] });
   useStore.getState().openAddFeed();
 });
 
@@ -62,7 +64,7 @@ describe('AddFeedDialog — smart discovery', () => {
     // Dialog stays open on the input step; nothing was created.
     expect(useStore.getState().showAddFeed).toBe(true);
     expect(useStore.getState().addPhase).toBe('input');
-    expect(useStore.getState().nodes).toHaveLength(0);
+    expect(await storedNodes()).toHaveLength(0);
   });
 
   it('offers add-as-is when no feeds are found', async () => {

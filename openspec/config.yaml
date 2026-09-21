@@ -11,8 +11,8 @@ context: |
 
   Product: RSS Reader — a local-first RSS reader delivered as an installable PWA.
   Everything (feeds, folder hierarchy, entries, read/bookmark state) is stored
-  on the device in localStorage under the key `rss-reader-pwa.library.v1`. There is no
-  server and no account; the app must work fully offline once loaded.
+  on the device in IndexedDB via Dexie, in the `rss-reader-pwa` database. There is
+  no server and no account; the app must work fully offline once loaded.
 
   Core capabilities:
   - Add RSS feeds (URL + optional title + target folder).
@@ -30,13 +30,19 @@ context: |
   - Keyboard shortcuts: J/K navigate, B bookmark, U toggle unread, N new feed,
     / focus bookmark search.
 
-  Data model (localStorage):
-  - nodes: { id, type: 'folder' | 'feed', name, parentId (null = root), collapsed, url? }
-  - entries: { id, feedId, title, author, ago, snippet, body[], read, marked }
+  Data model (two Dexie tables, primary key `id` on both):
+  - nodes: { id, type: 'folder' | 'feed', name, parentId (null = root), collapsed,
+    url?, fetchedAt? }; indexed on parentId.
+  - entries: { id, feedId, title, author, link, guid, publishedAt, snippet, body,
+    read, marked }; indexed on feedId, publishedAt, [feedId+publishedAt],
+    [read+publishedAt], [marked+publishedAt], read, marked, guid.
+  - `read` and `marked` persist as 0/1 (IndexedDB cannot index a boolean) and are
+    mapped to booleans at the repository boundary in `src/lib/db/rows.ts`.
+  - The UI never holds the whole library: `src/lib/db/repository.ts` is the only
+    read/write seam, entry lists page incrementally, and counts are indexed
+    `count()` queries. See docs/adr/0001-store-the-library-in-indexeddb-via-dexie.md.
 
   Deliberate exceptions to the constitution defaults:
-  - Persistence is browser localStorage only, not Dexie/IndexedDB
-    (`technologies/local-first.md`). No user data on any server, no account.
   - One server-side piece: a minimal, stateless Cloudflare Worker feed relay
     (`relay/`) that fetches feed XML to work around browser CORS. It stores
     nothing and holds no user data — a scoped exception to "no backend".
@@ -71,8 +77,10 @@ context: |
 # Per-artifact rules (optional)
 rules:
   proposal:
-    - State how the change behaves offline and what it persists to localStorage.
-    - Call out any change to the nodes/entries data shape and its migration path.
+    - State how the change behaves offline and what it persists to the local
+      database.
+    - Call out any change to the nodes/entries data shape, the Dexie schema
+      version, and the forward-only upgrade path.
   tasks:
     - Include a task to verify export/import round-trips after data-model changes.
     - Cover behavior with Vitest (units/components) and, for user-facing flows,

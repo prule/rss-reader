@@ -3,8 +3,8 @@
 import { useStore } from '../store/store';
 import { fetchFeedText, discoverFeeds, type DiscoveredFeed } from './relay';
 import { parseFeed } from './parseFeed';
-import { mergeFeedEntries } from './dedupe';
-import { node } from '../store/selectors';
+import * as repo from './db/repository';
+import * as actions from '../store/actions';
 
 /** A feed is refreshed automatically only once its last fetch is this old. */
 export const STALE_MS = 24 * 60 * 60 * 1000;
@@ -19,16 +19,16 @@ export function hostFrom(url: string): string {
 
 /** Fetch + parse + merge a single feed. Returns the number of new entries. */
 export async function refreshFeed(feedId: string): Promise<number> {
-  const s = useStore.getState();
-  const feed = node(s.nodes, feedId);
+  const feed = await repo.nodeById(feedId);
   if (!feed || feed.type !== 'feed' || !feed.url) return 0;
 
   const xml = await fetchFeedText(feed.url);
   const parsed = parseFeed(xml); // throws on malformed — caller keeps entries
-  const { entries, added } = mergeFeedEntries(useStore.getState().entries, parsed.items, feedId);
-  if (added > 0) useStore.getState().setEntries(entries);
+  // Merging happens inside the database: only genuinely new items are written, so
+  // a refresh costs what it adds rather than rewriting the feed's entries.
+  const added = await repo.mergeFeedItems(feedId, parsed.items);
   // Stamp the last-successful-fetch time (reached only when fetch + parse succeed).
-  useStore.getState().markFetched(feedId, Date.now());
+  await repo.markFetched(feedId, Date.now());
   return added;
 }
 
@@ -45,19 +45,19 @@ type ParsedItems = ReturnType<typeof parseFeed>['items'];
  * plain subscribe path and the discovery/batch paths. Creating the node even on
  * a failed fetch lets the user retry via refresh without discarding data.
  */
-function commitSubscription(
+async function commitSubscription(
   title: string,
   url: string,
   parent: string | null,
   items: ParsedItems | null,
   fetchFailed: boolean,
-): string {
+): Promise<string | null> {
   const s = useStore.getState();
-  const feedId = s.addFeedNode(title, url, parent);
+  const feedId = await actions.addFeedNode(title, url, parent);
+  if (!feedId) return null; // the write failed and has already been reported
   if (items) {
-    const { entries, added } = mergeFeedEntries(useStore.getState().entries, items, feedId);
-    useStore.getState().setEntries(entries);
-    useStore.getState().markFetched(feedId, Date.now());
+    const added = await repo.mergeFeedItems(feedId, items);
+    await repo.markFetched(feedId, Date.now());
     s.say(`Added ${title} — ${added} ${added === 1 ? 'entry' : 'entries'}`);
   } else if (fetchFailed) {
     s.say(`Added ${title}, but couldn't fetch it yet — try Refresh`);
@@ -91,7 +91,7 @@ export async function subscribeFeed(input: SubscribeInput): Promise<string | nul
   }
   if (!title) title = url ? hostFrom(url) : 'Untitled feed';
 
-  return commitSubscription(title, url, input.parent, items, fetchFailed);
+  return await commitSubscription(title, url, input.parent, items, fetchFailed);
 }
 
 /** Outcome of the smart add flow: subscribed directly, discovered feeds to choose from, or nothing. */
@@ -114,17 +114,16 @@ export async function addFromInput(input: SubscribeInput): Promise<AddResult> {
 
   // No URL: a manual title-only feed, as before.
   if (!url) {
-    return { kind: 'subscribed', feedId: commitSubscription(name, '', input.parent, null, false) };
+    const feedId = await commitSubscription(name, '', input.parent, null, false);
+    return feedId ? { kind: 'subscribed', feedId } : { kind: 'error' };
   }
 
   // Try the URL as a feed first — a successful parse means subscribe directly.
   try {
     const parsed = parseFeed(await fetchFeedText(url));
     const title = name || parsed.title || hostFrom(url);
-    return {
-      kind: 'subscribed',
-      feedId: commitSubscription(title, url, input.parent, parsed.items, false),
-    };
+    const feedId = await commitSubscription(title, url, input.parent, parsed.items, false);
+    return feedId ? { kind: 'subscribed', feedId } : { kind: 'error' };
   } catch {
     // Not a feed (or the relay refused the page). Fall through to discovery.
   }
@@ -147,9 +146,9 @@ async function subscribeDiscovered(cand: DiscoveredFeed, parent: string | null):
   try {
     const parsed = parseFeed(await fetchFeedText(cand.url));
     const title = parsed.title || cand.title || hostFrom(cand.url);
-    commitSubscription(title, cand.url, parent, parsed.items, false);
+    await commitSubscription(title, cand.url, parent, parsed.items, false);
   } catch {
-    commitSubscription(cand.title || hostFrom(cand.url), cand.url, parent, null, true);
+    await commitSubscription(cand.title || hostFrom(cand.url), cand.url, parent, null, true);
   }
 }
 
@@ -179,7 +178,7 @@ export interface RefreshOptions {
  */
 export async function refreshAll({ force = false }: RefreshOptions = {}): Promise<void> {
   const s = useStore.getState();
-  const feeds = s.nodes.filter((n) => n.type === 'feed');
+  const feeds = (await repo.nodesAll()).filter((n) => n.type === 'feed');
   if (feeds.length === 0) return;
 
   const now = Date.now();

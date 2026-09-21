@@ -552,3 +552,57 @@ a:hover {
 .update-prompt-text {
   font-size: 13.5px;
 }
+
+/* Storage lifecycle states: the library is loading, or cannot be opened. */
+.db-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+}
+.db-state-title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+.db-state-detail {
+  margin: 0;
+  font-size: 12.5px;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+  max-width: 34ch;
+  text-wrap: pretty;
+}
+
+/* Incremental entry list: loading the next page, and the end of the list. */
+.list-more,
+.list-end {
+  padding: var(--space-3) var(--space-4);
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.list-more {
+  color: var(--color-accent-700);
+}
+.list-end {
+  color: color-mix(in srgb, var(--color-text) 38%, transparent);
+  border-top: 1px solid var(--color-divider);
+}
+
+/* One-time rescue offer for a library left by the pre-database build. */
+.rescue-detail {
+  margin: 0 0 var(--space-2);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+  text-wrap: pretty;
+}

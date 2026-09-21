@@ -1,16 +1,21 @@
+// UI state only. The library itself lives in IndexedDB and is read through
+// src/lib/db/repository.ts — see openspec/specs/library-persistence. Keeping the
+// two apart is what lets a read-toggle write one row instead of the whole store.
 import { create } from 'zustand';
-import type { Entry, FeedForm, LibraryData, LibraryNode, Selection } from '../types';
+import type { FeedForm, Selection } from '../types';
 import type { DiscoveredFeed } from '../lib/relay';
-import { makeId } from '../lib/id';
-import { isDescendant, node, visibleEntries } from './selectors';
 
 /** Which step the add-feed dialog is showing. */
 export type AddPhase = 'input' | 'choosing' | 'none';
 
+/** How far along opening the local database is. */
+export type DbStatus = 'loading' | 'ready' | 'unavailable';
+
 export interface AppState {
-  // Persisted
-  nodes: LibraryNode[];
-  entries: Entry[];
+  // Storage lifecycle
+  dbStatus: DbStatus;
+  /** Set when the stored library turned out to be gone or unreadable. */
+  storageNotice: string;
 
   // UI
   sel: Selection;
@@ -32,48 +37,38 @@ export interface AppState {
   activeTags: string[];
   toast: string;
   refreshing: boolean;
+  /** Bumped to ask the entry list to re-page from the top. */
+  listEpoch: number;
+  /** A library left by the pre-database build, awaiting the one-time rescue offer. */
+  legacyPayload: string | null;
 
-  // Hydration / bulk replace
-  hydrate: (data: LibraryData) => void;
-  replaceLibrary: (data: LibraryData) => void;
+  // Storage lifecycle
+  setDbStatus: (status: DbStatus) => void;
+  noteStorage: (message: string) => void;
+  offerLegacyPayload: (raw: string) => void;
+  clearLegacyPayload: () => void;
 
   // Selection
   selectAll: () => void;
   selectUnread: () => void;
   selectBookmarks: () => void;
   selectNode: (id: string) => void;
-  openEntry: (id: string) => void;
+  setSelEntry: (id: string | null) => void;
 
   // Hover / tree ui
   setHover: (id: string | null) => void;
-  toggleCollapse: (id: string) => void;
 
   // Rename
-  startRename: (id: string) => void;
+  startRename: (id: string, current: string) => void;
   setRenameValue: (v: string) => void;
-  commitRename: () => void;
+  endRename: () => void;
   cancelRename: () => void;
-
-  // Structure
-  newFolder: () => void;
-  addFeedNode: (name: string, url: string, parentId: string | null) => string;
-  markFetched: (feedId: string, when: number) => void;
-  deleteNode: (id: string) => void;
-  moveNode: (dragId: string | null, targetId: string | null) => void;
 
   // Drag state
   setDrag: (id: string | null) => void;
   setDrop: (id: string | null) => void;
   setDropRoot: (v: boolean) => void;
   endDrag: () => void;
-
-  // Entries
-  addEntries: (entries: Entry[]) => void;
-  setEntries: (entries: Entry[]) => void;
-  patchEntry: (id: string, patch: Partial<Entry>) => void;
-  toggleMark: (id: string) => void;
-  toggleRead: (id: string) => void;
-  markVisibleRead: () => void;
 
   // Add-feed form
   openAddFeed: () => void;
@@ -94,15 +89,17 @@ export interface AppState {
   // Status / refresh
   setRefreshing: (v: boolean) => void;
   say: (msg: string) => void;
+  /** Reset the entry list to its first page — after an import or a selection reset. */
+  resetList: () => void;
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
 const emptyForm = (): FeedForm => ({ url: '', name: '', parent: '' });
 
-export const useStore = create<AppState>((set, get) => ({
-  nodes: [],
-  entries: [],
+export const useStore = create<AppState>((set) => ({
+  dbStatus: 'loading',
+  storageNotice: '',
   sel: { kind: 'all' },
   selEntry: null,
   hoverId: null,
@@ -121,136 +118,33 @@ export const useStore = create<AppState>((set, get) => ({
   activeTags: [],
   toast: '',
   refreshing: false,
+  listEpoch: 0,
+  legacyPayload: null,
 
-  hydrate: (data) => set({ nodes: data.nodes, entries: data.entries }),
-  replaceLibrary: (data) =>
-    set({
-      nodes: data.nodes,
-      entries: data.entries,
-      sel: { kind: 'all' },
-      selEntry: null,
-      activeTags: [],
-      query: '',
-    }),
+  setDbStatus: (dbStatus) => set({ dbStatus }),
+  noteStorage: (storageNotice) => set({ storageNotice }),
+  offerLegacyPayload: (raw) => set({ legacyPayload: raw }),
+  clearLegacyPayload: () => set({ legacyPayload: null }),
 
-  selectAll: () => set({ sel: { kind: 'all' } }),
-  selectUnread: () => set({ sel: { kind: 'unread' } }),
-  selectBookmarks: () => set({ sel: { kind: 'bookmarks' } }),
-  selectNode: (id) => set({ sel: { kind: 'node', id } }),
-  openEntry: (id) =>
-    set((s) => ({
-      selEntry: id,
-      entries: s.entries.map((e) => (e.id === id ? { ...e, read: true } : e)),
-    })),
+  // Changing selection restarts paging: a cursor from one selection is
+  // meaningless in another.
+  selectAll: () => set((s) => ({ sel: { kind: 'all' }, listEpoch: s.listEpoch + 1 })),
+  selectUnread: () => set((s) => ({ sel: { kind: 'unread' }, listEpoch: s.listEpoch + 1 })),
+  selectBookmarks: () => set((s) => ({ sel: { kind: 'bookmarks' }, listEpoch: s.listEpoch + 1 })),
+  selectNode: (id) => set((s) => ({ sel: { kind: 'node', id }, listEpoch: s.listEpoch + 1 })),
+  setSelEntry: (id) => set({ selEntry: id }),
 
   setHover: (id) => set((s) => (s.hoverId === id ? s : { hoverId: id })),
-  toggleCollapse: (id) =>
-    set((s) => ({
-      nodes: s.nodes.map((n) =>
-        n.id === id && n.type === 'folder' ? { ...n, collapsed: !n.collapsed } : n,
-      ),
-    })),
 
-  startRename: (id) => {
-    const n = node(get().nodes, id);
-    set({ renamingId: id, renameValue: n ? n.name : '' });
-  },
+  startRename: (id, current) => set({ renamingId: id, renameValue: current }),
   setRenameValue: (v) => set({ renameValue: v }),
-  commitRename: () =>
-    set((s) => {
-      const id = s.renamingId;
-      const v = s.renameValue.trim();
-      if (!id) return { renamingId: null };
-      return {
-        nodes: v ? s.nodes.map((n) => (n.id === id ? { ...n, name: v } : n)) : s.nodes,
-        renamingId: null,
-      };
-    }),
+  endRename: () => set({ renamingId: null }),
   cancelRename: () => set({ renamingId: null }),
-
-  newFolder: () => {
-    const id = makeId('f');
-    set((s) => ({
-      nodes: s.nodes.concat([
-        { id, type: 'folder', name: 'New Folder', parentId: null, collapsed: false },
-      ]),
-      renamingId: id,
-      renameValue: 'New Folder',
-    }));
-  },
-
-  addFeedNode: (name, url, parentId) => {
-    const id = makeId('s');
-    set((s) => ({
-      nodes: s.nodes.concat([
-        { id, type: 'feed', name, parentId: parentId ?? null, collapsed: false, url },
-      ]),
-      sel: { kind: 'node', id },
-    }));
-    return id;
-  },
-
-  markFetched: (feedId, when) =>
-    set((s) => ({
-      nodes: s.nodes.map((n) => (n.id === feedId ? { ...n, fetchedAt: when } : n)),
-    })),
-
-  deleteNode: (id) =>
-    set((s) => {
-      const n = s.nodes.find((x) => x.id === id);
-      const nodes = s.nodes
-        .filter((x) => x.id !== id)
-        .map((x) => (x.parentId === id ? { ...x, parentId: n ? n.parentId : null } : x));
-      const feedGone = n && n.type === 'feed';
-      const selCleared = s.sel.kind === 'node' && s.sel.id === id;
-      return {
-        nodes,
-        entries: feedGone ? s.entries.filter((e) => e.feedId !== id) : s.entries,
-        sel: selCleared ? { kind: 'all' } : s.sel,
-      };
-    }),
-
-  moveNode: (dragId, targetId) =>
-    set((s) => {
-      if (!dragId || dragId === targetId) return { dragId: null, dropId: null, dropRoot: false };
-      const target = targetId ? node(s.nodes, targetId) : null;
-      const newParent = !target ? null : target.type === 'folder' ? target.id : target.parentId;
-      if (dragId === newParent || isDescendant(s.nodes, dragId, newParent)) {
-        return { dragId: null, dropId: null, dropRoot: false };
-      }
-      const nodes = s.nodes.slice();
-      const i = nodes.findIndex((n) => n.id === dragId);
-      if (i < 0) return { dragId: null, dropId: null, dropRoot: false };
-      const moved: LibraryNode = { ...nodes[i], parentId: newParent };
-      nodes.splice(i, 1);
-      let at = target ? nodes.findIndex((n) => n.id === target.id) + 1 : nodes.length;
-      if (at < 0) at = nodes.length;
-      nodes.splice(at, 0, moved);
-      return { nodes, dragId: null, dropId: null, dropRoot: false };
-    }),
 
   setDrag: (id) => set({ dragId: id }),
   setDrop: (id) => set((s) => (s.dropId === id ? s : { dropId: id, dropRoot: false })),
   setDropRoot: (v) => set((s) => (s.dropRoot === v ? s : { dropRoot: v, dropId: null })),
   endDrag: () => set({ dragId: null, dropId: null, dropRoot: false }),
-
-  addEntries: (incoming) => set((s) => ({ entries: s.entries.concat(incoming) })),
-  setEntries: (entries) => set({ entries }),
-  patchEntry: (id, patch) =>
-    set((s) => ({ entries: s.entries.map((e) => (e.id === id ? { ...e, ...patch } : e)) })),
-  toggleMark: (id) =>
-    set((s) => ({
-      entries: s.entries.map((e) => (e.id === id ? { ...e, marked: !e.marked } : e)),
-    })),
-  toggleRead: (id) =>
-    set((s) => ({ entries: s.entries.map((e) => (e.id === id ? { ...e, read: !e.read } : e)) })),
-  markVisibleRead: () =>
-    set((s) => {
-      const ids = new Set(
-        visibleEntries(s.nodes, s.entries, s.sel, s.query, s.activeTags).map((e) => e.id),
-      );
-      return { entries: s.entries.map((e) => (ids.has(e.id) ? { ...e, read: true } : e)) };
-    }),
 
   openAddFeed: () =>
     set({
@@ -303,4 +197,12 @@ export const useStore = create<AppState>((set, get) => ({
     set({ toast: msg });
     toastTimer = setTimeout(() => set({ toast: '' }), 2600);
   },
+  resetList: () =>
+    set((s) => ({
+      sel: { kind: 'all' },
+      selEntry: null,
+      activeTags: [],
+      query: '',
+      listEpoch: s.listEpoch + 1,
+    })),
 }));
