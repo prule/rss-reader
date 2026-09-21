@@ -1,17 +1,19 @@
 import { useStore } from '../store/store';
 import { ancestors } from '../store/selectors';
+import { useNodes } from '../hooks/useLibrary';
 import { addFromInput, addSelectedFeeds, hostFrom, subscribeFeed } from '../lib/feeds';
 
 export function AddFeedDialog() {
   const s = useStore();
+  const nodes = useNodes() ?? [];
   if (!s.showAddFeed) return null;
 
   const folderOptions = [{ value: '', label: 'Top level' }].concat(
-    s.nodes
+    nodes
       .filter((n) => n.type === 'folder')
       .map((n) => ({
         value: n.id,
-        label: ancestors(s.nodes, n.id)
+        label: ancestors(nodes, n.id)
           .map((a) => a.name)
           .concat([n.name])
           .join(' / '),

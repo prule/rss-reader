@@ -1,17 +1,9 @@
 import { Ensure, isPresent, not } from '@serenity-js/assertions';
-import {
-  By,
-  Click,
-  Enter,
-  ExecuteScript,
-  isVisible,
-  Navigate,
-  PageElement,
-} from '@serenity-js/web';
+import { By, Click, Enter, isVisible, Navigate, PageElement } from '@serenity-js/web';
 import { describe, it } from './screenplay/serenity';
+import { SeedLibrary } from './screenplay/library';
 
 const SEED = {
-  version: 1,
   nodes: [
     { id: 'f_tech', type: 'folder', name: 'Technology', parentId: null, collapsed: false },
     {
@@ -58,9 +50,7 @@ describe('Bookmarks', () => {
   it('finds a bookmarked entry by tag and keyword', async ({ actor }) => {
     await actor.attemptsTo(
       Navigate.to('/'),
-      ExecuteScript.sync(
-        `window.localStorage.setItem('rss-reader-pwa.library.v1', arguments[0]);`,
-      ).withArguments(JSON.stringify(SEED)),
+      SeedLibrary.with(SEED),
       Navigate.reloadPage(),
       Click.on(bookmarkButton),
       Click.on(bookmarksShortcut),

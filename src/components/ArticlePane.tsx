@@ -1,13 +1,16 @@
 import { useMemo } from 'react';
 import { useStore } from '../store/store';
 import { node, tagsFor } from '../store/selectors';
+import { useEntry, useNodes } from '../hooks/useLibrary';
+import * as actions from '../store/actions';
 import { sanitizeHtml } from '../lib/sanitize';
 import { timeAgo } from '../lib/timeAgo';
 import { IconBookmark } from './icons';
 
 export function ArticlePane() {
   const s = useStore();
-  const article = s.selEntry ? s.entries.find((e) => e.id === s.selEntry) : undefined;
+  const nodes = useNodes() ?? [];
+  const article = useEntry(s.selEntry);
 
   // Sanitize defensively at render as well as at normalize time.
   const safeBody = useMemo(() => (article ? sanitizeHtml(article.body) : ''), [article]);
@@ -20,8 +23,8 @@ export function ArticlePane() {
     );
   }
 
-  const feed = node(s.nodes, article.feedId);
-  const tags = tagsFor(s.nodes, article.feedId);
+  const feed = node(nodes, article.feedId);
+  const tags = tagsFor(nodes, article.feedId);
   const ago = timeAgo(article.publishedAt);
   const byline = [article.author, ago && `${ago} ago`].filter(Boolean).join(' · ');
 
@@ -34,12 +37,12 @@ export function ArticlePane() {
             <span className="article-rule" />
             <button
               className={`article-action${article.marked ? ' on' : ''}`}
-              onClick={() => s.toggleMark(article.id)}
+              onClick={() => void actions.toggleMark(article.id)}
             >
               <IconBookmark size={13} fill={article.marked} />
               {article.marked ? 'Bookmarked' : 'Bookmark'}
             </button>
-            <button className="article-action" onClick={() => s.toggleRead(article.id)}>
+            <button className="article-action" onClick={() => void actions.toggleRead(article.id)}>
               {article.read ? 'Mark unread' : 'Mark read'}
             </button>
           </div>

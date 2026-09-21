@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the relay so tests are deterministic and offline.
 vi.mock('./relay', () => ({
@@ -22,6 +22,8 @@ import { feed } from '../test/fixtures';
 import { node } from '../store/selectors';
 import { buildJSON } from './exporters';
 import { fromJSON } from './importers';
+import { readLibrary } from './db/repository';
+import { resetLibrary, seedLibrary, storedNodes } from '../test/db';
 
 const mockFetch = vi.mocked(fetchFeedText);
 const mockDiscover = vi.mocked(discoverFeeds);
@@ -30,11 +32,18 @@ const RSS = (title: string, guid: string) => `<rss><channel><title>${title}</tit
   <item><title>${guid} item</title><link>https://x/${guid}</link><guid>${guid}</guid></item>
 </channel></rss>`;
 
-beforeEach(() => {
+beforeEach(async () => {
   mockFetch.mockReset();
   mockDiscover.mockReset();
-  useStore.setState({ nodes: [], entries: [], sel: { kind: 'all' }, refreshing: false });
+  await resetLibrary();
+  await seedLibrary({ nodes: [], entries: [] });
+  useStore.setState({ refreshing: false, toast: '' });
 });
+
+afterEach(resetLibrary);
+
+/** The whole stored library, for assertions that used to read the store. */
+const stored = () => readLibrary();
 
 describe('hostFrom', () => {
   it('extracts a hostname without www', () => {
@@ -48,18 +57,18 @@ describe('subscribeFeed', () => {
     mockFetch.mockResolvedValueOnce(RSS('Ars Technica', 'a1'));
     const id = await subscribeFeed({ url: 'https://ars.example/feed', name: '', parent: null });
     expect(id).toBeTruthy();
-    const s = useStore.getState();
-    expect(s.nodes.find((n) => n.id === id)!.name).toBe('Ars Technica');
-    expect(s.entries.filter((e) => e.feedId === id)).toHaveLength(1);
+    const lib = await stored();
+    expect(lib.nodes.find((n) => n.id === id)!.name).toBe('Ars Technica');
+    expect(lib.entries.filter((e) => e.feedId === id)).toHaveLength(1);
   });
 
   it('still creates the feed (named from host) when the first fetch fails', async () => {
     mockFetch.mockRejectedValueOnce(new Error('boom'));
     const id = await subscribeFeed({ url: 'https://packet.example/rss', name: '', parent: null });
-    const s = useStore.getState();
-    expect(s.nodes.find((n) => n.id === id)!.name).toBe('packet.example');
-    expect(s.entries).toHaveLength(0);
-    expect(s.toast).toContain("couldn't fetch");
+    const lib = await stored();
+    expect(lib.nodes.find((n) => n.id === id)!.name).toBe('packet.example');
+    expect(lib.entries).toHaveLength(0);
+    expect(useStore.getState().toast).toContain("couldn't fetch");
   });
 
   it('ignores an empty submission', async () => {
@@ -74,7 +83,7 @@ describe('addFromInput (smart add)', () => {
     const r = await addFromInput({ url: 'https://ars.example/feed', name: '', parent: null });
     expect(r.kind).toBe('subscribed');
     expect(mockDiscover).not.toHaveBeenCalled();
-    expect(useStore.getState().nodes).toHaveLength(1);
+    expect(await storedNodes()).toHaveLength(1);
   });
 
   it('discovers feeds when the URL is a site page, creating nothing', async () => {
@@ -91,7 +100,7 @@ describe('addFromInput (smart add)', () => {
         { url: 'https://tc.example/ai/feed', type: 'rss', title: 'AI' },
       ],
     });
-    expect(useStore.getState().nodes).toHaveLength(0); // nothing added yet
+    expect(await storedNodes()).toHaveLength(0); // nothing added yet
   });
 
   it('reports none-found when a page advertises no feeds', async () => {
@@ -99,7 +108,7 @@ describe('addFromInput (smart add)', () => {
     mockDiscover.mockResolvedValueOnce([]);
     const r = await addFromInput({ url: 'https://empty.example', name: '', parent: null });
     expect(r.kind).toBe('none-found');
-    expect(useStore.getState().nodes).toHaveLength(0);
+    expect(await storedNodes()).toHaveLength(0);
   });
 
   it('reports error and creates nothing when the site is unreachable', async () => {
@@ -107,7 +116,7 @@ describe('addFromInput (smart add)', () => {
     mockDiscover.mockRejectedValueOnce(new Error('offline'));
     const r = await addFromInput({ url: 'https://down.example', name: '', parent: null });
     expect(r.kind).toBe('error');
-    expect(useStore.getState().nodes).toHaveLength(0);
+    expect(await storedNodes()).toHaveLength(0);
   });
 
   it('ignores an empty submission', async () => {
@@ -117,7 +126,7 @@ describe('addFromInput (smart add)', () => {
 
 describe('addSelectedFeeds (batch)', () => {
   it('adds only the selected feeds into the target folder, reconciling real titles', async () => {
-    useStore.setState({
+    await seedLibrary({
       nodes: [{ id: 'fold', type: 'folder', name: 'Tech', parentId: null, collapsed: false }],
     });
     mockFetch.mockImplementation(async (url: string) =>
@@ -130,7 +139,7 @@ describe('addSelectedFeeds (batch)', () => {
       ],
       'fold',
     );
-    const feeds = useStore.getState().nodes.filter((n) => n.type === 'feed');
+    const feeds = (await storedNodes()).filter((n) => n.type === 'feed');
     expect(feeds).toHaveLength(2);
     expect(feeds.every((f) => f.parentId === 'fold')).toBe(true);
     expect(feeds.map((f) => f.name).sort()).toEqual(['Real AI Title', 'Real Main Title']);
@@ -142,7 +151,7 @@ describe('addSelectedFeeds (batch)', () => {
       [{ url: 'https://x.example/feed', type: 'rss', title: 'Discovered Name' }],
       null,
     );
-    const f = useStore.getState().nodes.find((n) => n.type === 'feed')!;
+    const f = (await storedNodes()).find((n) => n.type === 'feed')!;
     expect(f.name).toBe('Discovered Name');
   });
 
@@ -157,7 +166,7 @@ describe('addSelectedFeeds (batch)', () => {
       ],
       null,
     );
-    const { nodes, entries } = useStore.getState();
+    const { nodes, entries } = await stored();
     const restored = fromJSON(buildJSON({ nodes, entries }));
     expect(restored.nodes).toEqual(nodes);
     expect(restored.entries).toEqual(entries);
@@ -166,15 +175,15 @@ describe('addSelectedFeeds (batch)', () => {
 
 describe('refreshFeed / refreshAll', () => {
   it('refreshFeed merges new entries', async () => {
-    useStore.setState({ nodes: [feed('s1', 'A', null, 'https://a/feed')] });
+    await seedLibrary({ nodes: [feed('s1', 'A', null, 'https://a/feed')] });
     mockFetch.mockResolvedValueOnce(RSS('A', 'x1'));
     const added = await refreshFeed('s1');
     expect(added).toBe(1);
-    expect(useStore.getState().entries).toHaveLength(1);
+    expect((await stored()).entries).toHaveLength(1);
   });
 
   it('isolates per-feed failures so one failure does not block others', async () => {
-    useStore.setState({
+    await seedLibrary({
       nodes: [feed('s1', 'A', null, 'https://a/feed'), feed('s2', 'B', null, 'https://b/feed')],
     });
     // s1 fails, s2 succeeds.
@@ -183,30 +192,30 @@ describe('refreshFeed / refreshAll', () => {
       return RSS('B', 'b1');
     });
     await refreshAll();
-    const s = useStore.getState();
-    expect(s.entries.filter((e) => e.feedId === 's2')).toHaveLength(1); // s2 refreshed
-    expect(s.refreshing).toBe(false);
-    expect(s.toast).toContain('1 feed');
+    const lib = await stored();
+    expect(lib.entries.filter((e) => e.feedId === 's2')).toHaveLength(1); // s2 refreshed
+    expect(useStore.getState().refreshing).toBe(false);
+    expect(useStore.getState().toast).toContain('1 feed');
   });
 });
 
 describe('refresh staleness gating', () => {
-  const withFetchedAt = (id: string, url: string, fetchedAt?: number) => ({
-    ...feed(id, id, null, url),
-    fetchedAt,
-  });
+  // Omit the key entirely when there is no fetch time, so the stored row looks
+  // like a never-fetched feed rather than one with an explicit undefined.
+  const withFetchedAt = (id: string, url: string, fetchedAt?: number) =>
+    fetchedAt === undefined ? feed(id, id, null, url) : { ...feed(id, id, null, url), fetchedAt };
 
   it('refreshFeed stamps fetchedAt on success', async () => {
-    useStore.setState({ nodes: [feed('s1', 'A', null, 'https://a/feed')] });
+    await seedLibrary({ nodes: [feed('s1', 'A', null, 'https://a/feed')] });
     mockFetch.mockResolvedValueOnce(RSS('A', 'x1'));
     const before = Date.now();
     await refreshFeed('s1');
-    const at = node(useStore.getState().nodes, 's1')!.fetchedAt!;
+    const at = node(await storedNodes(), 's1')!.fetchedAt!;
     expect(at).toBeGreaterThanOrEqual(before);
   });
 
   it('automatic refresh skips a feed fetched within 24h', async () => {
-    useStore.setState({
+    await seedLibrary({
       nodes: [withFetchedAt('fresh', 'https://fresh/feed', Date.now() - 60_000)],
     });
     mockFetch.mockResolvedValue(RSS('X', 'x1'));
@@ -216,7 +225,7 @@ describe('refresh staleness gating', () => {
   });
 
   it('automatic refresh fetches a never-fetched or >24h-old feed', async () => {
-    useStore.setState({
+    await seedLibrary({
       nodes: [
         withFetchedAt('never', 'https://never/feed', undefined),
         withFetchedAt('old', 'https://old/feed', Date.now() - (STALE_MS + 60_000)),
@@ -234,7 +243,7 @@ describe('refresh staleness gating', () => {
   });
 
   it('manual refresh forces a fresh feed to fetch', async () => {
-    useStore.setState({
+    await seedLibrary({
       nodes: [withFetchedAt('fresh', 'https://fresh/feed', Date.now() - 60_000)],
     });
     mockFetch.mockResolvedValue(RSS('X', 'x1'));
@@ -243,9 +252,9 @@ describe('refresh staleness gating', () => {
   });
 
   it('a failed fetch does not advance fetchedAt (stays eligible)', async () => {
-    useStore.setState({ nodes: [withFetchedAt('s1', 'https://a/feed', undefined)] });
+    await seedLibrary({ nodes: [withFetchedAt('s1', 'https://a/feed', undefined)] });
     mockFetch.mockRejectedValue(new Error('down'));
     await refreshAll({ force: false });
-    expect(node(useStore.getState().nodes, 's1')!.fetchedAt).toBeUndefined();
+    expect(node(await storedNodes(), 's1')!.fetchedAt).toBeUndefined();
   });
 });

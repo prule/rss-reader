@@ -1,11 +1,25 @@
 // Restore a library from a JSON or CSV export. Both throw on unusable input so
 // the caller can leave the current library intact.
 import type { Entry, LibraryData, LibraryNode } from '../types';
-import { migrate } from './migrate';
 import { makeId } from './id';
 
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null;
+}
+
+/**
+ * Validate an exported payload. The export envelope still carries `version: 1`
+ * (see `JsonExport`), and files written by older builds carry the same
+ * `{nodes, entries}` shape, so a file exported before the move to IndexedDB still
+ * imports. Fields the current build does not know are preserved, not dropped.
+ */
+export function parseLibraryPayload(raw: unknown): LibraryData | null {
+  if (!isRecord(raw) || !Array.isArray(raw.nodes) || !Array.isArray(raw.entries)) return null;
+  return { nodes: raw.nodes as LibraryNode[], entries: raw.entries as Entry[] };
+}
+
 export function fromJSON(text: string): LibraryData {
-  const data = migrate(JSON.parse(text));
+  const data = parseLibraryPayload(JSON.parse(text));
   if (!data) throw new Error('Not an RSS Reader library export');
   return data;
 }

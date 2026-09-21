@@ -1,7 +1,9 @@
 # RSS Reader
 
 A local-first RSS reader delivered as an installable PWA. Feeds, folders, entries
-and bookmarks live on the device — no account, no user data on a server.
+and bookmarks live on the device in IndexedDB (via Dexie) — no account, no user
+data on a server. See `docs/adr/0001-store-the-library-in-indexeddb-via-dexie.md`
+for why, and for the accepted cost of not migrating pre-Dexie libraries.
 
 ## Commands
 
@@ -54,9 +56,6 @@ it is implemented — see `docs/constitution/documentation/specs.md`.
 
 Deliberate, and recorded in `openspec/config.yaml`:
 
-- Storage is `localStorage`, not Dexie/IndexedDB (`technologies/local-first.md`).
-  No user data on a server, by design. No ADR yet — write one if the ~5MB
-  synchronous, string-only ceiling becomes a real constraint.
 - The `relay/` Worker is a scoped exception to "no backend": stateless, fetches
   feed XML around CORS, stores nothing.
 - E2E uses Serenity/JS rather than a hand-rolled Screenplay implementation

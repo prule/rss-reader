@@ -1,9 +1,9 @@
 import { Ensure, equals, includes, isPresent } from '@serenity-js/assertions';
 import { By, Click, ExecuteScript, isVisible, Navigate, PageElement, Text } from '@serenity-js/web';
 import { describe, it } from './screenplay/serenity';
+import { SeedLibrary } from './screenplay/library';
 
 const SEED = {
-  version: 1,
   nodes: [
     {
       id: 's1',
@@ -23,8 +23,8 @@ const SEED = {
       link: null,
       guid: 'e1',
       publishedAt: Date.now() - 3_600_000,
-      snippet: 'This entry lives in localStorage.',
-      body: '<p>This entry lives in localStorage.</p>',
+      snippet: 'This entry lives on this device.',
+      body: '<p>This entry lives on this device.</p>',
       read: false,
       marked: false,
     },
@@ -49,11 +49,7 @@ describe('Offline behaviour', () => {
   }) => {
     await actor.attemptsTo(
       Navigate.to('/'),
-      ExecuteScript.sync(
-        `window.localStorage.setItem('rss-reader-pwa.library.v1', arguments[0]);
-         // Simulate no network: every fetch rejects, like being offline.
-         window.fetch = () => Promise.reject(new Error('offline'));`,
-      ).withArguments(JSON.stringify(SEED)),
+      SeedLibrary.with(SEED),
       Navigate.reloadPage(),
       // Re-install the offline fetch shim after reload.
       ExecuteScript.sync(`window.fetch = () => Promise.reject(new Error('offline'));`),

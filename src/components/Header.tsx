@@ -1,20 +1,23 @@
 import { useRef } from 'react';
+import type { LibraryNode } from '../types';
 import { RefreshCw } from 'lucide-react';
 import { useStore } from '../store/store';
 import { ancestors, node, feedCount } from '../store/selectors';
+import { useNodes } from '../hooks/useLibrary';
+import * as actions from '../store/actions';
+import { readLibrary } from '../lib/db/repository';
 import { refreshAll } from '../lib/feeds';
 import { buildCSV, buildJSON, download, stamp } from '../lib/exporters';
 import { fromCSV, fromJSON } from '../lib/importers';
 import { ICON_STROKE, IconDownload, IconNewFolder, IconPlus, IconUpload } from './icons';
 
-function useCrumb(): string {
-  const s = useStore();
-  if (s.sel.kind === 'all') return 'All Entries';
-  if (s.sel.kind === 'unread') return 'Unread';
-  if (s.sel.kind === 'bookmarks') return 'Bookmarks';
-  const n = node(s.nodes, s.sel.id);
+function crumbFor(sel: ReturnType<typeof useStore.getState>['sel'], nodes: LibraryNode[]): string {
+  if (sel.kind === 'all') return 'All Entries';
+  if (sel.kind === 'unread') return 'Unread';
+  if (sel.kind === 'bookmarks') return 'Bookmarks';
+  const n = node(nodes, sel.id);
   if (!n) return 'All Entries';
-  return ancestors(s.nodes, n.id)
+  return ancestors(nodes, n.id)
     .map((a) => a.name)
     .concat([n.name])
     .join('  ›  ');
@@ -22,20 +25,21 @@ function useCrumb(): string {
 
 export function Header() {
   const s = useStore();
-  const crumb = useCrumb();
+  const nodes = useNodes() ?? [];
+  const crumb = crumbFor(s.sel, nodes);
   const fileRef = useRef<HTMLInputElement>(null);
-  const hasFeeds = feedCount(s.nodes) > 0;
+  const hasFeeds = feedCount(nodes) > 0;
 
-  const exportJSON = () => {
-    download(
-      `rss-reader-${stamp()}.json`,
-      'application/json',
-      buildJSON({ nodes: s.nodes, entries: s.entries }),
-    );
+  // Exports read the whole library straight from the database rather than from a
+  // copy held in the store, so the file is always what is actually stored.
+  const exportJSON = async () => {
+    const data = await readLibrary();
+    download(`rss-reader-${stamp()}.json`, 'application/json', buildJSON(data));
     s.say('Exported JSON');
   };
-  const exportCSV = () => {
-    download(`rss-reader-${stamp()}.csv`, 'text/csv', buildCSV(s.nodes, s.entries));
+  const exportCSV = async () => {
+    const data = await readLibrary();
+    download(`rss-reader-${stamp()}.csv`, 'text/csv', buildCSV(data.nodes, data.entries));
     s.say('Exported CSV');
   };
   const onImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,14 +47,21 @@ export function Header() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const text = String(reader.result ?? '');
-      try {
-        const data = /\.csv$/i.test(file.name) ? fromCSV(text) : fromJSON(text);
-        s.replaceLibrary(data);
-        s.say(`Imported ${data.entries.length} entries`);
-      } catch {
-        s.say('Could not read that file');
-      }
+      void (async () => {
+        const text = String(reader.result ?? '');
+        let data;
+        try {
+          data = /\.csv$/i.test(file.name) ? fromCSV(text) : fromJSON(text);
+        } catch {
+          s.say('Could not read that file');
+          return;
+        }
+        // The write is atomic: a failure leaves the previous library untouched,
+        // and replaceLibrary reports it rather than claiming success.
+        if (await actions.replaceLibrary(data)) {
+          s.say(`Imported ${data.entries.length} entries`);
+        }
+      })();
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -77,7 +88,7 @@ export function Header() {
         </button>
         <button
           className="btn btn-secondary"
-          onClick={exportJSON}
+          onClick={() => void exportJSON()}
           title="Download feeds, folders and bookmarks as JSON"
           style={{ height: 26, fontSize: 12 }}
         >
@@ -86,7 +97,7 @@ export function Header() {
         </button>
         <button
           className="btn btn-secondary"
-          onClick={exportCSV}
+          onClick={() => void exportCSV()}
           title="Download entries and bookmark tags as CSV"
           style={{ height: 26, fontSize: 12 }}
         >
@@ -112,7 +123,7 @@ export function Header() {
         <span className="divider-v" />
         <button
           className="btn btn-secondary"
-          onClick={s.newFolder}
+          onClick={() => void actions.newFolder()}
           style={{ height: 26, fontSize: 12 }}
         >
           <IconNewFolder />
