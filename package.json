@@ -3,9 +3,10 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "RSS Reader — a local-first RSS reader PWA. Feeds, folders and bookmarks stored on this device.",
+  "description": "RSS Reader \u2014 a local-first RSS reader PWA. Feeds, folders and bookmarks stored on this device.",
   "packageManager": "pnpm@11.18.0",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
