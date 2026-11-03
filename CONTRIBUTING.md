@@ -24,6 +24,7 @@ Every file keeps the same shape, in this order:
 ## Constraints
 
 - **Keep files short — 15–25 lines.** These are loaded into agent context; length is a direct cost. If a file grows, split it or cut it.
+  - Exception: a file carrying a copy-paste template may exceed the budget, because the template is bulk to be copied once rather than prose to be read every task. The prose around it still must not.
 - **Write for an agent, not an essay reader.** No history, no attribution, no motivational framing.
 - **Cross-reference rather than repeat.** A pattern file links to the principle it rests on (a relative path into `principles/`) instead of restating it.
 - **Update the folder README and the root README** when adding or removing a file. Both carry file counts and tables.

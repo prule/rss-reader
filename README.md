@@ -6,8 +6,8 @@ Design rules for agents building software. Three tiers, in descending order of a
 |---|---|---|
 | **[Principles](principles/README.md)** | Universal — apply to every decision | 12 files |
 | **[Patterns](patterns/README.md)** | Conditional — apply when the problem has that shape | 14 files |
-| **[Technologies](technologies/README.md)** | Chosen defaults — deviate only for a stated reason | 10 files |
-| **[Documentation](documentation/README.md)** | Standards — how to document what you build | 7 files |
+| **[Technologies](technologies/README.md)** | Chosen defaults — deviate only for a stated reason | 16 files |
+| **[Documentation](documentation/README.md)** | Standards — how to document what you build | 8 files |
 
 The tiers differ in how binding they are. A principle is never wrong to apply. A pattern applied to the wrong problem is itself a mistake — reaching for DDD on a CRUD app violates KISS and YAGNI, so every pattern file says when *not* to use it. A technology choice is a preference: follow it unless the project records a reason not to. Documentation standards apply to whatever you build, whichever stack it uses.
 
@@ -90,11 +90,16 @@ Other installation options, with trade-offs, are in [INSTALL.md](INSTALL.md).
 | Runtime & packages | fnm + pnpm, both version-pinned |
 | Frontend | Vite + React + React Router, Tailwind + shadcn/ui |
 | Offline | Dexie + Workbox, hand-rolled sync |
+| Accessibility | WCAG 2.1 AA — native elements, keyboard, visible focus |
+| Resilience | Error boundaries, retry GET only, loading/empty/error/success |
+| Time & money | UTC stored, money as integer minor units |
 | Backend (default) | Supabase, RLS on every table |
-| Backend (complex domain) | Kotlin + Spring Boot + Spring Data JDBC |
+| Backend (complex domain) | Kotlin + Spring Boot + Spring Data JDBC, ports and adapters |
+| REST conventions | HATEOAS links, RFC 9457 Problem Details, idempotency keys |
 | Hosting | Cloudflare Pages + Workers (JVM needs a container host) |
 | API contracts | Contract first — OpenAPI written before code |
 | Formatting | Prettier · ktfmt · google-java-format, via pre-commit hook |
+| Quality gates | oxlint · detekt · coverage · SonarQube (`sonar-check`) · Renovate |
 | Repo layout | pnpm workspace monorepo |
 | Native shells | PWA first; Capacitor or Tauri only on demand |
 | Testing | Vitest · Playwright + Screenplay · JUnit 5 + MockK · Testcontainers |
@@ -106,6 +111,7 @@ Decision tree and the full rules in [technologies/README.md](technologies/README
 | Question | Artefact |
 |---|---|
 | What should it do? | [OpenSpec spec](documentation/specs.md) — written before the implementation |
+| What is true of *this* product? | [openspec/config.yaml](documentation/openspec-config.md) |
 | Why is it built this way? | [ADR](documentation/adr.md) — Nygard format, immutable once accepted |
 | How do I run it? | [Project README](documentation/project-readme.md) |
 | What changed? | [Generated changelog](documentation/commits.md) — Conventional Commits |
@@ -120,8 +126,8 @@ Full rules in [documentation/README.md](documentation/README.md).
 ```
 principles/    12 files — universal rules
 patterns/      14 files — conditional designs, each with "when not to use this"
-technologies/  10 files — the chosen stack, with a decision tree
-documentation/ 7 files — what to document and where it lives
+technologies/  16 files — the chosen stack, with a decision tree
+documentation/ 8 files — what to document and where it lives
 ```
 
 Every file follows the same shape: a one-line definition, imperative **Rules for agents**, a **counterweight** section naming the rule's own failure mode, and **Smells** for recognising violations in existing code.
