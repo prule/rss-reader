@@ -9,6 +9,7 @@
 | Why is it built this way? | `adr.md` |
 | How do I run it? | `project-readme.md` |
 | What does the API look like? | `openapi.yaml` (`../technologies/type-contracts.md`) |
+| What is true of *this* product? | `openspec/config.yaml` (`openspec-config.md`) |
 
 ## Rules for agents
 - **Write or update the spec first.** A change proposal describes the intended behaviour, is reviewed, and only then implemented. Do not implement and backfill the spec.

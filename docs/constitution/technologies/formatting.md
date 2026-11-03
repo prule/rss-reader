@@ -30,18 +30,20 @@ Git's native `core.hooksPath`, committed to the repo. Not Husky — that is a No
 set -e
 staged=$(git diff --cached --name-only --diff-filter=ACMR)
 [ -z "$staged" ] && exit 0
-./run format
+echo "$staged" | xargs pnpm exec prettier --write --ignore-unknown --log-level warn --
 echo "$staged" | xargs git add --
 ```
 
-Register it in `./run setup` so every clone gets it: `git config core.hooksPath .githooks`
+Format **only the staged files** — it is fast, quiet, and `.prettierignore` still applies. For a JVM project, call `./gradlew spotlessApply` instead (Spotless has no cheap per-file mode).
+
+Register it in `./run setup` so every clone gets it: `git config core.hooksPath .githooks`. `core.hooksPath` is local git config and is **not** carried by a clone, so a project without a setup script must document this as a once-per-clone step.
 
 ## Rules for agents
 - **Never hand-format, and never argue about style.** Run the formatter and move on. Do not leave formatting comments in review.
 - **The hook is convenience; CI is enforcement.** `--no-verify` exists, so CI must run `spotlessCheck` and `prettier --check` and fail on a diff. Formatting policed only by a hook is not policed.
 - **Never `git add .` in a hook.** It sweeps unrelated working-tree changes into the commit. Re-stage only what was already staged, as above.
 - Keep formatting out of feature commits. Do the initial mass reformat as one commit, and add its SHA to `.git-blame-ignore-revs` so blame stays useful.
-- Use `eslint-config-prettier` so lint rules never fight the formatter. Lint is for correctness; formatting is for the formatter.
+- Lint is for correctness; formatting is for the formatter. oxlint's `correctness` rules never touch layout (`quality-gates.md`); an ESLint setup needs `eslint-config-prettier`.
 - Commit an `.editorconfig` so editors agree before a formatter runs.
 - Exclude generated code and vendored files — never reformat a generated client.
 - Do not use `// @formatter:off` or `// prettier-ignore` except for data tables and ASCII art where alignment carries meaning.

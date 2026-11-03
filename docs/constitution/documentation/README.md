@@ -9,6 +9,7 @@
 | Question | Artefact | File |
 |---|---|---|
 | What should it do? | OpenSpec spec | [specs.md](specs.md) |
+| What is true of *this* product? | `openspec/config.yaml` | [openspec-config.md](openspec-config.md) |
 | Why is it built this way? | ADR in `docs/adr/` | [adr.md](adr.md) |
 | How do I run it? | Project `README.md` | [project-readme.md](project-readme.md) |
 | What does the API look like? | `openapi.yaml` | [../technologies/type-contracts.md](../technologies/type-contracts.md) |

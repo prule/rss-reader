@@ -23,7 +23,7 @@ The default shape for user-facing apps: a client-rendered SPA, installable, offl
 - Ship the PWA essentials properly: web app manifest, maskable icons, offline fallback route, and a tested update prompt. An unhandled service-worker update is a stale app.
 - Never cache authenticated API responses in the service worker.
 - Route-level code splitting via lazy routes from the start.
-- Accessibility is not optional: semantic elements, labelled controls, visible focus, keyboard paths.
+- Accessibility is not optional — `accessibility.md`. Degrade gracefully when the network fails — `frontend-resilience.md`. Store time in UTC and money as integers — `localization.md`.
 
 ## Deviate when
 Content sites that need SEO and fast first paint are a different problem — use a static site generator or SSR framework and say so explicitly.
