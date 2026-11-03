@@ -22,7 +22,17 @@ spotless {
 Pin both versions in the version catalog — an unpinned formatter reformats the world when it upgrades. For a Kotlin-only project, `ktfmt-gradle` is lighter and gives you `ktfmtFormat` directly.
 
 ## The pre-commit hook
-Git's native `core.hooksPath`, committed to the repo. Not Husky — that is a Node dependency for a problem Git already solves.
+Pick the runner by what the repo already has:
+
+- **It has a `package.json`** (Node, TypeScript, or a monorepo with a frontend): **Husky + lint-staged**. `pnpm install` installs the hook through the `prepare` script, so no clone misses it, and lint-staged formats only the staged files and restores anything left unstaged. In a monorepo, use a `lint-staged.config.mjs` and add `'*.{kt,kts,java}': () => './gradlew spotlessApply'` — a function, because lint-staged otherwise appends the file names and Gradle reads them as task names.
+- **It has no Node** (a JVM-only repo): Git's native `core.hooksPath`, below. Never add a `package.json` only to run a hook.
+
+```json
+"scripts": { "prepare": "husky" },
+"lint-staged": { "*": "prettier --write --ignore-unknown" }
+```
+
+The native hook, committed to the repo:
 
 ```sh
 #!/bin/sh
@@ -36,7 +46,7 @@ echo "$staged" | xargs git add --
 
 Format **only the staged files** — it is fast, quiet, and `.prettierignore` still applies. For a JVM project, call `./gradlew spotlessApply` instead (Spotless has no cheap per-file mode).
 
-Register it in `./run setup` so every clone gets it: `git config core.hooksPath .githooks`. `core.hooksPath` is local git config and is **not** carried by a clone, so a project without a setup script must document this as a once-per-clone step.
+Register it in `./run setup`, or in a Gradle `installGitHooks` task that `build` depends on, so every clone gets it: `git config core.hooksPath .githooks`. `core.hooksPath` is local git config and is **not** carried by a clone, so a project without a setup script must document this as a once-per-clone step.
 
 ## Rules for agents
 - **Never hand-format, and never argue about style.** Run the formatter and move on. Do not leave formatting comments in review.
@@ -49,4 +59,4 @@ Register it in `./run setup` so every clone gets it: `git config core.hooksPath 
 - Do not use `// @formatter:off` or `// prettier-ignore` except for data tables and ASCII art where alignment carries meaning.
 
 ## Smells
-A pull request diff full of whitespace, a formatting debate in review, Husky installed for a hook Git can run, an unpinned formatter version, CI that never checks formatting, `git add .` in a pre-commit hook, per-developer IDE settings as the style source.
+A pull request diff full of whitespace, a formatting debate in review, a `package.json` added only to run Husky, an unpinned formatter version, CI that never checks formatting, `git add .` in a pre-commit hook, per-developer IDE settings as the style source.
