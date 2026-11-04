@@ -51,6 +51,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
+    // Node 25+ has its own localStorage global, which hides jsdom's; switch it off.
+    poolOptions: { forks: { execArgv: ['--no-webstorage'] } },
     include: ['src/**/*.{test,spec}.{ts,tsx}', 'relay/**/*.test.ts'],
   },
 });
