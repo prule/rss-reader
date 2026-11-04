@@ -21,6 +21,12 @@ describe('sanitizeHtml', () => {
     expect(clean).toContain('href="https://x.com"');
   });
 
+  it('makes links open in a new tab without opener access', () => {
+    const clean = sanitizeHtml('<a href="https://x.com" target="_self">link</a>');
+    expect(clean).toContain('target="_blank"');
+    expect(clean).toContain('rel="noopener noreferrer"');
+  });
+
   it('toSnippet strips tags and truncates', () => {
     expect(toSnippet('<p>Hello <b>world</b></p>')).toBe('Hello world');
     const long = '<p>' + 'a'.repeat(500) + '</p>';

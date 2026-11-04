@@ -41,6 +41,14 @@ const ALLOWED_TAGS = [
 ];
 const ALLOWED_ATTR = ['href', 'title', 'src', 'alt', 'colspan', 'rowspan'];
 
+// Article links open in a new tab, so following one never navigates the reader away.
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  if (node.tagName === 'A') {
+    node.setAttribute('target', '_blank');
+    node.setAttribute('rel', 'noopener noreferrer');
+  }
+});
+
 export function sanitizeHtml(dirty: string): string {
   return DOMPurify.sanitize(dirty ?? '', {
     ALLOWED_TAGS,

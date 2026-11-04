@@ -84,6 +84,11 @@ The system SHALL display the selected entry's title, source feed, byline (author
 - **WHEN** an entry body contains scripts or unsafe markup
 - **THEN** the rendered article contains no executable or unsafe content
 
+#### Scenario: Article links open in a new tab
+
+- **WHEN** the user follows a link in an entry body
+- **THEN** it opens in a new tab, without giving the linked page access to the reader (`noopener`)
+
 ### Requirement: Keyboard navigation
 
 The system SHALL support keyboard shortcuts when focus is not in a text field: J/K move to the next/previous entry (opening it and marking it read), B toggles the selected entry's bookmark, U toggles its read state, N opens the add-feed dialog, and `/` switches to Bookmarks and focuses the search field. Escape SHALL close an open dialog or inline edit.
