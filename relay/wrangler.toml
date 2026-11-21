@@ -11,7 +11,7 @@ compatibility_date = "2024-11-01"
 [vars]
 # Browser origins allowed to call the relay (defense-in-depth). Add preview
 # deployment origins here if you use them.
-ALLOWED_ORIGINS = "https://rss-reader-pwa-bm4.pages.dev,http://localhost:5173"
+ALLOWED_ORIGINS = "https://rss-reader-pwa-bm4.pages.dev,http://localhost:5182,http://rss-reader.devvm"
 # Max upstream response size in bytes (1 MB).
 MAX_BYTES = "1000000"
 # Max redirect hops to follow (each re-validated).

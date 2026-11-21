@@ -39,7 +39,12 @@ export default defineConfig({
       },
     }),
   ],
+  // Own port so it never clashes with another project's dev server; the
+  // devvm reaches it as http://rss-reader.devvm through Caddy.
   server: {
+    port: 5182,
+    strictPort: true,
+    allowedHosts: ['.devvm'],
     proxy: {
       '/relay': {
         target: 'http://localhost:8787',
