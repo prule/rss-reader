@@ -40,7 +40,7 @@ export default defineConfig({
     }),
   ],
   // Own port so it never clashes with another project's dev server; the
-  // devvm reaches it as http://rss-reader.devvm through Caddy.
+  // devvm reaches it as http://rss-reader.devvm:8000 through Caddy.
   server: {
     port: 5182,
     strictPort: true,
